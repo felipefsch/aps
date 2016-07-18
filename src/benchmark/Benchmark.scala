@@ -3,6 +3,7 @@ package benchmark
 import algorithms._
 import utils._
 import java.io._
+import scala.util.control.NonFatal
 
 /**
  * Benchmarking tool for extracting execution time of APSS implementations
@@ -12,11 +13,22 @@ object Benchmark {
   /**
    * Get execution time of block in nanoseconds
    */
-  def timeNs[R](block: => R): Long = {  
-    val t0 = System.nanoTime()
-    block    // call-by-name
-    val t1 = System.nanoTime()
-    return (t1 - t0)
+  def timeNs[R](block: => R, bw: BufferedWriter): Long = {
+    var result = 0.toLong
+    try {
+      val t0 = System.nanoTime()
+      block    // call-by-name
+      val t1 = System.nanoTime()
+      result = (t1 - t0)
+    }
+    catch {
+      case e: Exception => {
+        bw.append("\nException: " + e.toString() + "\n\n")
+        result = -1
+                
+      }
+    }
+    return result
   }
   
   /**
@@ -32,7 +44,7 @@ object Benchmark {
   def execTimeAvg[R](block: => R, nExecs: Int, bw: BufferedWriter, writeAll: Boolean): Unit = {
     var totalExecTime = 0.toLong
     for (i <- 1 to nExecs) {
-      var execTime = timeNs { block }
+      var execTime = timeNs(block,bw)
       totalExecTime += execTime
       if (writeAll)
         bw.append("Execution " + i + ": " + execTime + " ns\n")
@@ -65,12 +77,13 @@ object Benchmark {
     var configPath = "config/"
     var configs = Array("config0", "config1",
         "config2_0", "config2_1", "config2_2", "config2_3", "config2_4", "config2_5", 
-        "config3", "config4", "config5")        
+        "config3", "config4", "config5")     
     
     for (config <- configs) {  
       
       val file = new File("/home/schmidt/Desktop/benchmarks/benchmark_" + config + ".txt")
-      val bw = new BufferedWriter(new FileWriter(file))              
+      val fw = new FileWriter(file, true)
+      val bw = new BufferedWriter(fw)
 
       /*var arg0 = Array(
           "--config", configPath + config + ".xml", 
@@ -138,22 +151,22 @@ object Benchmark {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
           }  
+        }       
+        
+        if (ELEMENTSPLIT) {
+          bw.append("###Element Split:\n")
+          try {
+            execTimeAvg(algorithms.ElementSplit.main(arg), nExecs, bw, writeAll)
+          } catch {
+            case e:
+              Exception => bw.append(e.toString() + "\n\n")
+          }
         }        
         
         if (BRUTEFORCE) {
           bw.append("###Brute Force:\n")
           try {
             execTimeAvg(algorithms.BruteForce.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }
-        }
-        
-        if (ELEMENTSPLIT) {
-          bw.append("###Element Split:\n")
-          try {
-            execTimeAvg(algorithms.ElementSplit.main(arg), nExecs, bw, writeAll)
           } catch {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
