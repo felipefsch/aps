@@ -72,6 +72,9 @@ object Args {
     }
     
     val options = nextOption(Map(),arglist)
+    
+    if (options.get('createData).isDefined)
+      CREATEDATA = options.get('createData).mkString.toBoolean      
    
     // Parameters from XML file
     if (options.get('config).isDefined) {
@@ -114,10 +117,7 @@ object Args {
       input = options.get('input).mkString      
 
     if (options.get('output).isDefined)
-      output = options.get('output).mkString  
-
-    if (options.get('createData).isDefined)
-      CREATEDATA = options.get('createData).mkString.toBoolean      
+      output = options.get('output).mkString      
       
     if (DEBUG) {
       println(options)      

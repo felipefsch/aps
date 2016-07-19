@@ -24,8 +24,9 @@ object Benchmark {
     catch {
       case e: Exception => {
         bw.append("\nException: " + e.toString() + "\n\n")
-        result = -1
-                
+        bw.flush()        
+        
+        result = -1                
       }
     }
     return result
@@ -48,6 +49,7 @@ object Benchmark {
       totalExecTime += execTime
       if (writeAll)
         bw.append("Execution " + i + ": " + execTime + " ns\n")
+        bw.flush()
     }
     bw.append("AVG Execution time: " + (totalExecTime / nExecs) + " ns\n\n")        
   }
@@ -58,7 +60,7 @@ object Benchmark {
     
     val INIT = true
     val BRUTEFORCE = true
-    val ELEMENTSPLIT = true
+    val ELEMENTSPLIT = false
     val INVIDX = true
     val INVIDXPRE = true
     val INVIDXFETCH = true
@@ -104,7 +106,7 @@ object Benchmark {
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "10000", 
+          "--n", "1000", 
           "--debug", "false",
           "--createData", "true",  
           "--output", "/home/schmidt/Desktop/benchmarks/results/",
@@ -113,10 +115,11 @@ object Benchmark {
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "10000", 
+          "--n", "1000", 
           "--debug", "false",
-          "--createData", "true",          
-          "--nElements", "5000")    
+          "--createData", "true", 
+          "--output", "/home/schmidt/Desktop/benchmarks/results/",          
+          "--nElements", "2000")    
           
       /*var arg4 = Array(
           "--config", "config/config3.xml", 
@@ -143,6 +146,7 @@ object Benchmark {
         bw.append("# Benchmarking args: " + arg.mkString(" ") + "\n")        
         bw.append("# Benchmarking config: " + config + "\n")
         bw.append("###############################################\n\n")
+        bw.flush()
       
         if (Args.CREATEDATA) {
           try {          
@@ -151,7 +155,9 @@ object Benchmark {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
           }  
-        }       
+        }
+        
+        bw.flush()
         
         if (ELEMENTSPLIT) {
           bw.append("###Element Split:\n")
@@ -161,7 +167,9 @@ object Benchmark {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
           }
-        }        
+        }     
+        
+        bw.flush()        
         
         if (BRUTEFORCE) {
           bw.append("###Brute Force:\n")
@@ -173,6 +181,8 @@ object Benchmark {
           }
         }
         
+        bw.flush()
+        
         if (INVIDXPREFETCH) {
           bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
           try {
@@ -183,6 +193,8 @@ object Benchmark {
           }  
         }      
         
+        bw.flush()
+        
         if (INVIDXPRE) {
           bw.append("###Inverted Index Prefix Filtering:\n")
           try {
@@ -191,7 +203,9 @@ object Benchmark {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
           }     
-        }        
+        }       
+        
+        bw.flush()        
         
         if (INVIDXFETCH) {
           bw.append("###Inverted Index Fetching IDs:\n")
@@ -203,6 +217,8 @@ object Benchmark {
           }
         }
         
+        bw.flush()        
+        
         if (INVIDX) {
           bw.append("###Inverted Index:\n")
           try {
@@ -211,7 +227,9 @@ object Benchmark {
             case e:
               Exception => bw.append(e.toString() + "\n\n")
           }
-        }        
+        }   
+        
+        bw.flush()        
         
       }
       bw.close()      
