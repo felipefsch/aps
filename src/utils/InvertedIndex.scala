@@ -84,7 +84,8 @@ object InvertedIndex {
    * 
    * Combine all pairs of element rankings for same element in the index
    */
-  def candidatesPerEntry(in: (Long, Iterable[(Long, (Long, Array[Long]))])) = {
+  def candidatesPerEntry(in: (Long, Iterable[(Long, (Long, Array[Long]))]))
+  : Iterable[Iterable[((Long, Array[Long]),(Long, Array[Long]))]] = {
     val element = in._1
     val rankings = in._2
 
@@ -107,7 +108,11 @@ object InvertedIndex {
    * 
    * Given inverted index, generate candidate pairs
    */
-  def getCandidates(in: RDD[(Long, Iterable[(Long, (Long, Array[Long]))])]) {
-    in.flatMap(x => candidatesPerEntry(x)).flatMap(x => x).filter(p => (p._1._1 < p._2._1)).distinct()
+  def getCandidates(in: RDD[(Long, Iterable[(Long, (Long, Array[Long]))])])
+  : RDD[((Long, Array[Long]), (Long, Array[Long]))] = {
+    in.flatMap(x => candidatesPerEntry(x))
+      .flatMap(x => x)
+      .filter(p => (p._1._1 < p._2._1))
+      .distinct()
   } 
 }
