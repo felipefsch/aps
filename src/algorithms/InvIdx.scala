@@ -17,13 +17,13 @@ object InvIdx {
    * for all elements in the rank
    */
   def arrayToIdElement(in: (Long, Array[Long]))
-  : scala.collection.immutable.IndexedSeq[((Long, Array[Long]), Long)] = {
+  : scala.collection.immutable.IndexedSeq[(Long, (Long, Array[Long]))] = {
     var id = in._1
     var rank = in._2
     var elements = in._2
     
     for (i <- 0 until elements.length) yield {
-      ((id, rank), elements(i))
+      (elements(i), (id, rank))
     }
   }
   
@@ -31,14 +31,14 @@ object InvIdx {
    * Create inverted index for all distinct rank elements
    */
   def getInvertedIndex(ranksArray: RDD[(Long, Array[Long])])
-  : RDD[(Long, Iterable[((Long, Array[Long]),Long)])] = {
+  : RDD[(Long, Iterable[(Long, (Long, Array[Long]))])] = {
     // Create one tuple for each element
     val tuples = ranksArray.flatMap(x => arrayToIdElement(x))
   
     // Group on element
     // Inverted index as: Array[element, (rank, element)*]
     // TODO: avoid element duplicated into each tuple on Iterable
-    val invertedIndex = tuples.groupBy(tup => tup._2)    
+    val invertedIndex = tuples.groupBy(tup => tup._1)    
     
     return invertedIndex
   }
@@ -69,7 +69,7 @@ object InvIdx {
       val flatInvIdx = invertedIndex.flatMap(x => x._2)
       
       // Filter to make cartesian only for: 1° arrays of same element, 2° smaller ID always on left (also avoid self join)
-      val distinctCandidates = flatInvIdx.cartesian(flatInvIdx).filter(x => ((x._1._2 == x._2._2) && (x._1._1._1 < x._2._1._1))).map(x => (x._1._1, x._2._1)).distinct()
+      val distinctCandidates = flatInvIdx.cartesian(flatInvIdx).filter(x => ((x._1._1 == x._2._1) && (x._1._2._1 < x._2._2._1))).map(x => (x._1._2, x._2._2)).distinct()
       
       val allDistances = distinctCandidates.map(x => Footrule.onLeftIdIndexedArray(x))
       
