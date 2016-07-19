@@ -73,6 +73,41 @@ object InvertedIndex {
     val invertedIndex = tuples.groupBy(tup => tup._2)    
     
     return invertedIndex
-  }  
+  }
   
+  /**
+   * Input:
+   * -(Element, [(Element, (RankingID, [Ranking]))]
+   * 
+   * Output:
+   * -((RankingID, [Ranking]), (RankingID, [Ranking]))
+   * 
+   * Combine all pairs of element rankings for same element in the index
+   */
+  def candidatesPerEntry(in: (Long, Iterable[(Long, (Long, Array[Long]))])) = {
+    val element = in._1
+    val rankings = in._2
+
+    for (r1 <- rankings) yield {
+      for (r2 <- rankings) yield {
+        if (r1._2._1 < r2._2._1)
+          (r1._2, r2._2)
+        else
+          (r2._2, r1._2)  
+      }
+    }
+  }   
+  
+  /**
+   * Input:
+   * -(Element, [Element, (RankingID, [Ranking])]
+   * 
+   * Output:
+   * -((RankingID, [Ranking]),(RankingID, [Ranking]))
+   * 
+   * Given inverted index, generate candidate pairs
+   */
+  def getCandidates(in: RDD[(Long, Iterable[(Long, (Long, Array[Long]))])]) {
+    in.flatMap(x => candidatesPerEntry(x)).flatMap(x => x).filter(p => (p._1._1 < p._2._1)).distinct()
+  } 
 }
