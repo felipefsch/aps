@@ -279,10 +279,11 @@ object SyntheticDataSet {
     
     val file = new File(output)
     
-    if (file.exists()) {
+    if (file.exists() && Args.CREATEDATA) {
       file.delete()
-      //println("Output file \"" + output + "\" already exists! Process stopped")
-      return
+      
+      if (DEBUG)
+        println("Delting input file " + file)
     }
     
     val bw = new BufferedWriter(new FileWriter(file))
