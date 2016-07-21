@@ -55,12 +55,12 @@ object Benchmark {
   }
   
   def main(args: Array[String]): Unit = {
-    val writeAll = true
+    val writeAll = false
     val nExecs = 1
     
     val INIT = true
     val BRUTEFORCE = true
-    val ELEMENTSPLIT = false
+    val ELEMENTSPLIT = true
     val INVIDX = true
     val INVIDXPRE = true
     val INVIDXFETCH = true
@@ -106,7 +106,7 @@ object Benchmark {
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "1000", 
+          "--n", "5000", 
           "--debug", "false",
           "--createData", "true",  
           "--output", "/home/schmidt/Desktop/benchmarks/results/",
@@ -115,11 +115,11 @@ object Benchmark {
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "1000", 
+          "--n", "5000", 
           "--debug", "false",
           "--createData", "true", 
           "--output", "/home/schmidt/Desktop/benchmarks/results/",          
-          "--nElements", "2000")    
+          "--nElements", "10000")    
           
       /*var arg4 = Array(
           "--config", "config/config3.xml", 
@@ -229,7 +229,7 @@ object Benchmark {
           }
         }   
         
-        bw.flush()        
+        bw.flush()       
         
       }
       bw.close()      
