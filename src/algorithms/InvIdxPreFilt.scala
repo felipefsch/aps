@@ -14,53 +14,7 @@ object InvIdxPreFilt {
 
   var k:Long = 0
   var threshold:Long = 0
-  
-  /**
-   * Input:
-   * -(ID, [Elements]*)
-   * Output:
-   * -[Element, (ID, [Elements]*)]*
-   * 
-   * Given rank ID and its elements, create tuples as
-   * (rank, element(i)) for elements on ranking prefix
-   */
-  def arrayToIdElement(in: (Long, Array[Long]))
-  : scala.collection.immutable.IndexedSeq[(Long, (Long, Array[Long]))] = {
-    var id = in._1
-    var rank = in._2
-    var elements = in._2
-    
-    var prefixSize = k - Footrule.getMinOverlap(k, threshold)
-    
-    // Emitting tuples only for the prefix elements
-    // guarantee we don't miss pairs with minimum intersection
-    // on inverted index and shrink its size
-    for (i <- 0 until prefixSize.toInt) yield {
-      (elements(i), (id, rank))
-    }
-  }
-  
-  /**
-   * Input:
-   * -[(ID, [Elements]*)]*
-   * Output:
-   * -[(Element, (ID, [Elements]*))]*
-   * 
-   * Create inverted index ranking prefix
-   */
-  def getInvertedIndex(ranksArray: RDD[(Long, Array[Long])])
-  : RDD[(Long, Iterable[(Long, (Long, Array[Long]))])] = {
-    // Create one tuple for each element
-    val tuples = ranksArray.flatMap(x => arrayToIdElement(x))
-  
-    // Group on element
-    // Inverted index as: Array[element, (rank, element)*]
-    // TODO: avoid element duplicated into each tuple on Iterable
-    val invertedIndex = tuples.groupBy(tup => tup._1)    
-    
-    return invertedIndex
-  }
-  
+   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
 
@@ -82,12 +36,11 @@ object InvIdxPreFilt {
       // Partition ranks
       val ranksArray =  Load.spaceSeparated(input, sc)
       
-      val invertedIndex = getInvertedIndex(ranksArray)
+      var prefixSize = k - Footrule.getMinOverlap(k, threshold)
       
-      val flatInvIdx = invertedIndex.flatMap(x => x._2)
+      val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, prefixSize.toInt)
       
-      // Filter to make cartesian only for: 1° arrays of same element, 2° smaller ID always on left (also avoid self join)
-      val distinctCandidates = flatInvIdx.cartesian(flatInvIdx).filter(x => ((x._1._1 == x._2._1) && (x._1._2._1 < x._2._2._1))).map(x => (x._1._2, x._2._2)).distinct()
+      val distinctCandidates = InvertedIndex.getCandidates(invertedIndex)
       
       val allDistances = distinctCandidates.map(x => Footrule.onLeftIdIndexedArray(x))
       

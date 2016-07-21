@@ -15,13 +15,13 @@ object InvertedIndex {
    * (rank, element(i)) for elements on ranking prefix
    */
   def arrayToIdElement(in: (Long, Array[Long]), prefixSize: Long)
-  : scala.collection.immutable.IndexedSeq[((Long, Array[Long]), Long)] = {
+  : scala.collection.immutable.IndexedSeq[(Long, (Long, Array[Long]))] = {
     var id = in._1
     var rank = in._2
     var elements = in._2
     
     for (i <- 0 until prefixSize.toInt) yield {
-      ((id, rank), elements(i))
+      (elements(i), (id, rank))
     }
   }
   
@@ -34,14 +34,14 @@ object InvertedIndex {
    * Create inverted index ranking prefix
    */
   def getInvertedIndex(ranksArray: RDD[(Long, Array[Long])], prefixSize: Int)
-  : RDD[(Long, Iterable[((Long, Array[Long]),Long)])] = {
+  : RDD[(Long, Iterable[(Long, (Long, Array[Long]))])] = {
     // Create one tuple for each element
     val tuples = ranksArray.flatMap(x => arrayToIdElement(x, prefixSize))
   
     // Group on element
     // Inverted index as: Array[element, (rank, element)*]
     // TODO: avoid element duplicated into each tuple on Iterable
-    val invertedIndex = tuples.groupBy(tup => tup._2)    
+    val invertedIndex = tuples.groupBy(tup => tup._1)    
     
     return invertedIndex
   }
@@ -49,6 +49,9 @@ object InvertedIndex {
   /**
    * Given rank ID and its elements, create tuples as (rankId, element(i))
    * for all elements in the rank
+   * 
+   * Output:
+   * -(Element, RankingID)
    */
   def arrayToIdPairs(in: (Long, Array[Long]), prefixSize: Int)
   : scala.collection.immutable.IndexedSeq[(Long, Long)] = {
@@ -56,21 +59,22 @@ object InvertedIndex {
     var elements = in._2
     
     for (i <- 0 until prefixSize) yield {
-      (id, elements(i))
+      (elements(i), id)
     }
   }
   
   /**
-   * Create inverted index for all distinct rank elements
+   * Output:
+   * -(Element, [Element, RankingID])
    */
-  def getInvertedIndexIds(ranksArray: RDD[(Long, Array[Long])], prefixSize: Int)
+  def getInvertedIndexIDs(ranksArray: RDD[(Long, Array[Long])], prefixSize: Int)
   : RDD[(Long, Iterable[(Long,Long)])] = {
     // Create one tuple for each element (id, element)
     val tuples = ranksArray.flatMap(x => arrayToIdPairs(x, prefixSize))
   
     // Inverted index as: Array[element, (rankId, element)*]
     // TODO: avoid element duplicated into each tuple on Iterable
-    val invertedIndex = tuples.groupBy(tup => tup._2)    
+    val invertedIndex = tuples.groupBy(tup => tup._1)    
     
     return invertedIndex
   }
@@ -115,4 +119,32 @@ object InvertedIndex {
       .filter(p => (p._1._1 < p._2._1))
       .distinct()
   } 
+  
+  
+  /**
+   * Output:
+   * -[RankingID1, RankingID2]  
+   */
+  def candidatesPerEntryIDs(in: (Long, Iterable[(Long, Long)]))
+  : Iterable[Iterable[(Long, Long)]] = {
+    val element = in._1
+    val pairs = in._2
+
+    for (r1 <- pairs) yield {
+      for (r2 <- pairs) yield {
+        if (r1._2 < r2._2)
+          (r1._2, r2._2)
+        else
+          (r2._2, r1._2)  
+      }
+    }
+  }    
+  
+  def getCandidatesIDs(in: RDD[(Long, Iterable[(Long, Long)])])
+  : RDD[(Long, Long)] = {
+    in.flatMap(x => candidatesPerEntryIDs(x))
+      .flatMap(x => x)
+      .filter(p => (p._1 < p._2))
+      .distinct()
+  }
 }
