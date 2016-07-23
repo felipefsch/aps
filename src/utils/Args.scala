@@ -20,6 +20,8 @@ object Args {
   var input = ""
   var output = ""
   
+  var nodes = 1
+  
   val usage = """
     Usage: mmlaln [--min-size num] [--max-size num] filename
   """
@@ -60,7 +62,9 @@ object Args {
         case "--debug" :: value :: tail =>
                                nextOption(map ++ Map('debug -> value.toBoolean), tail)
         case "--createData" :: value :: tail =>
-                               nextOption(map ++ Map('createData -> value.toBoolean), tail)                                 
+                               nextOption(map ++ Map('createData -> value.toBoolean), tail) 
+        case "--nodes" :: value :: tail =>
+                               nextOption(map ++ Map('nodes -> value.toInt), tail)                               
         /*case string :: opt2 :: tail if isSwitch(opt2) => 
                                nextOption(map ++ Map('infile -> string), list.tail)
         case string :: opt2 :: tail if isSwitch(opt2) => 
@@ -92,6 +96,7 @@ object Args {
       CREATEDATA = ((((configXml \\ "config") \\ "dataSet") \\ "createData").text).toBoolean
       input = ((configXml \\ "config") \\ "input").text
       output = ((configXml \\ "config") \\ "outputFolder").text
+      nodes = (((configXml \\ "config") \\ "nodes").text).toInt
     }
     
     // Overwrite with passed by argument values    
@@ -117,7 +122,10 @@ object Args {
       input = options.get('input).mkString      
 
     if (options.get('output).isDefined)
-      output = options.get('output).mkString      
+      output = options.get('output).mkString 
+      
+    if (options.get('nodes).isDefined)
+      distinctElements = options.get('nodes).mkString.toInt       
       
     if (DEBUG) {
       println(options)      

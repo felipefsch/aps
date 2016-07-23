@@ -31,7 +31,7 @@ object InvIdx {
     val sc = new SparkContext(conf)
     try {  
       // Partition ranks
-      val ranksArray = Load.spaceSeparated(input, sc)
+      val ranksArray = Load.spaceSeparated(input, sc, Args.nodes)
       
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, k)
       

@@ -12,7 +12,7 @@ object RankSearch {
    */
   def getRank(rankId: Long, inputPath: String, sc: SparkContext)
   : (Long, Array[Long]) = {
-    val ranks = Load.spaceSeparated(inputPath, sc)
+    val ranks = Load.spaceSeparated(inputPath, sc, 1)
 
     // Filter will give an Array, but as we have unique Id,
     // the first element is the one we are searching for
@@ -36,7 +36,7 @@ object RankSearch {
 
   def getRanksTuple(rankIds: (Long, Long), inputPath: String, sc: SparkContext)
   : ((Long, Array[(Long)]), (Long, Array[(Long)])) = {
-    val ranks = Load.spaceSeparated(inputPath, sc)
+    val ranks = Load.spaceSeparated(inputPath, sc, 1)
     
     val firstRank = getRank(rankIds._1, ranks)
     val secondRank = getRank(rankIds._2, ranks)

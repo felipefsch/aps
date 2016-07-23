@@ -34,7 +34,7 @@ object InvIdxFetchPreFilt {
     val sc = new SparkContext(conf)
     try {  
       // Partition ranks
-      val ranksArray =  Load.spaceSeparated(input, sc)
+      val ranksArray =  Load.spaceSeparated(input, sc, Args.nodes)
            
       var prefixSize = k - Footrule.getMinOverlap(k, threshold) 
       

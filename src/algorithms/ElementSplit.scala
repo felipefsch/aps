@@ -80,7 +80,7 @@ object ElementSplit {
       val sc = new SparkContext(conf)
       
       try {
-        val ranks = Load.spaceSeparated(input, sc)
+        val ranks = Load.spaceSeparated(input, sc, Args.nodes)
   
         // Create (Element, Pos, ID)
         val triples = ranks.flatMap(x => emitElementRankId(x))

@@ -35,7 +35,9 @@ object BruteForce {
     val sc = new SparkContext(conf)
     
     try {
-      val ranksArray = Load.spaceSeparated(input, sc)
+      val ranksArray = Load.spaceSeparated(input, sc, Args.nodes)
+      
+      println("Default parallelism: " + sc.defaultParallelism)
   
       // Cartesian product
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)
