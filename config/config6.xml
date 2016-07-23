@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<debug>false</debug>
+	
+	<!-- Normalized threshold -->
+	<threshold>0.15</threshold>
+	
+	<masterIp>local</masterIp>
+	
+	<!-- Store count of results for cross checking -->
+	<storeCount>false</storeCount>
+	
+	<!-- Use the data set output as the input for synthetic data set -->
+	<input>/home/schmidt/Desktop/benchmarks/data_set/data_set_config6.txt</input>
+	
+	<!-- Output path to folder with output results -->
+	<outputFolder>/home/schmidt/Desktop/benchmarks/results/config6/</outputFolder>
+	
+	<dataSet>
+		<createData>true</createData>	
+		<k>10</k>
+		<n>1000</n>
+		<selectivity>0.05</selectivity>
+		<nPool>1</nPool>
+		<poolIntersection>0</poolIntersection>
+		<distinctElements>100</distinctElements>
+		<output>/home/schmidt/Desktop/benchmarks/data_set/data_set_config6.txt</output>	
+	</dataSet>
+</config>
