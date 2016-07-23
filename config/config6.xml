@@ -16,7 +16,7 @@
 	<input>/home/schmidt/Desktop/benchmarks/data_set/data_set_config6.txt</input>
 	
 	<!-- Output path to folder with output results -->
-	<outputFolder>/home/schmidt/Desktop/benchmarks/results/config0/</outputFolder>
+	<outputFolder>/home/schmidt/Desktop/benchmarks/results/config6/</outputFolder>
 	
 	<dataSet>
 		<createData>true</createData>	

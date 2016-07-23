@@ -375,7 +375,7 @@ object SyntheticDataSet {
     var k = Args.k
     var n = Args.n
     var distinctElements = Args.distinctElements
-    var output = (((configXml \\ "config") \\ "dataSet") \\ "output").text
+    var output = Args.datasetOutput//(((configXml \\ "config") \\ "dataSet") \\ "output").text
     var normThreshold = Args.normThreshold
     var nPools = ((((configXml \\ "config") \\ "dataSet") \\ "nPool").text).toInt
     var selectivity = ((((configXml \\ "config") \\ "dataSet") \\ "selectivity").text).toDouble

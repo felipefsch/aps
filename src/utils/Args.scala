@@ -19,6 +19,7 @@ object Args {
   var poolIntersection = 0.0
   var input = ""
   var output = ""
+  var datasetOutput = ""
   
   var nodes = 1
   
@@ -56,7 +57,9 @@ object Args {
         case "--input" :: value :: tail =>
                                nextOption(map ++ Map('input -> value.toString()), tail)
         case "--output" :: value :: tail =>
-                               nextOption(map ++ Map('output -> value.toString()), tail)                               
+                               nextOption(map ++ Map('output -> value.toString()), tail)
+        case "--datasetOutput" :: value :: tail =>
+                               nextOption(map ++ Map('datasetOutput -> value.toString()), tail)                               
         case "--count" :: value :: tail =>
                                nextOption(map ++ Map('count -> value.toBoolean), tail)
         case "--debug" :: value :: tail =>
@@ -97,6 +100,7 @@ object Args {
       input = ((configXml \\ "config") \\ "input").text
       output = ((configXml \\ "config") \\ "outputFolder").text
       nodes = (((configXml \\ "config") \\ "nodes").text).toInt
+      datasetOutput = (((configXml \\ "config") \\ "dataSet") \\ "output").text
     }
     
     // Overwrite with passed by argument values    
@@ -125,7 +129,10 @@ object Args {
       output = options.get('output).mkString 
       
     if (options.get('nodes).isDefined)
-      distinctElements = options.get('nodes).mkString.toInt       
+      nodes = options.get('nodes).mkString.toInt
+
+    if (options.get('datasetOutput).isDefined)
+      datasetOutput = options.get('datasetOutput).mkString      
       
     if (DEBUG) {
       println(options)      
