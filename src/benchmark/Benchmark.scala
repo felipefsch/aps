@@ -55,8 +55,8 @@ object Benchmark {
   }
   
   def main(args: Array[String]): Unit = {
-    val writeAll = false
-    val nExecs = 1
+    val writeAll = true
+    val nExecs = 2
     
     val INIT = true
     val BRUTEFORCE = true
@@ -77,9 +77,9 @@ object Benchmark {
     }           
         
     var configPath = "config/"
-    var configs = Array("config0", "config1",
+    var configs = Array("config6")/*"config0", "config1",
         "config2_0", "config2_1", "config2_2", "config2_3", "config2_4", "config2_5", 
-        "config3", "config4", "config5")     
+        "config3", "config4", "config5")  */   
     
     for (config <- configs) {  
       
@@ -109,8 +109,9 @@ object Benchmark {
           "--n", "5000", 
           "--debug", "false",
           "--createData", "true",  
-          "--output", "/home/schmidt/Desktop/benchmarks/results/",
-          "--nElements", "100")
+          "--nodes", "5",          
+          "--output", "/home/schmidt/Desktop/benchmarks/results1/",
+          "--nElements", "2000")
       var arg3 = Array(
           "--config", configPath + config + ".xml", 
           "--count", "false", 
@@ -118,10 +119,20 @@ object Benchmark {
           "--n", "5000", 
           "--debug", "false",
           "--createData", "true", 
-          "--output", "/home/schmidt/Desktop/benchmarks/results/",          
-          "--nElements", "10000")    
-          
+          "--nodes", "10",          
+          "--output", "/home/schmidt/Desktop/benchmarks/results2/",          
+          "--nElements", "2000")              
       /*var arg4 = Array(
+          "--config", configPath + config + ".xml", 
+          "--count", "false", 
+          "--k", "10",
+          "--n", "1000", 
+          "--debug", "false",
+          "--createData", "true",
+          "--nodes", "10",
+          "--output", "/home/schmidt/Desktop/benchmarks/results3/",          
+          "--nElements", "2000")           
+      var arg4 = Array(
           "--config", "config/config3.xml", 
           "--count", "false", 
           "--n", "10000", 
@@ -136,7 +147,7 @@ object Benchmark {
           "--createData", "true",          
           "--nElements", "100")*/
       
-      var arguments = Array(/*arg0, arg1,*/ arg2, arg3)//, arg4, arg5)
+      var arguments = Array(/*arg0, arg1,*/ arg2, arg3)//, arg4)//, arg5)
       
       for (arg <- arguments) { 
         
