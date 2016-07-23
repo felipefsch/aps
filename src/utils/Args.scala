@@ -19,6 +19,7 @@ object Args {
   var poolIntersection = 0.0
   var input = ""
   var output = ""
+  var datasetOutput = ""
   
   val usage = """
     Usage: mmlaln [--min-size num] [--max-size num] filename
@@ -54,7 +55,9 @@ object Args {
         case "--input" :: value :: tail =>
                                nextOption(map ++ Map('input -> value.toString()), tail)
         case "--output" :: value :: tail =>
-                               nextOption(map ++ Map('output -> value.toString()), tail)                               
+                               nextOption(map ++ Map('output -> value.toString()), tail)
+        case "--datasetOutput" :: value :: tail =>
+                               nextOption(map ++ Map('datasetOutput -> value.toString()), tail)                               
         case "--count" :: value :: tail =>
                                nextOption(map ++ Map('count -> value.toBoolean), tail)
         case "--debug" :: value :: tail =>
@@ -92,6 +95,7 @@ object Args {
       CREATEDATA = ((((configXml \\ "config") \\ "dataSet") \\ "createData").text).toBoolean
       input = ((configXml \\ "config") \\ "input").text
       output = ((configXml \\ "config") \\ "outputFolder").text
+      datasetOutput = (((configXml \\ "config") \\ "dataSet") \\ "output").text
     }
     
     // Overwrite with passed by argument values    
@@ -117,7 +121,10 @@ object Args {
       input = options.get('input).mkString      
 
     if (options.get('output).isDefined)
-      output = options.get('output).mkString      
+      output = options.get('output).mkString  
+
+    if (options.get('datasetOutput).isDefined)
+      output = options.get('datasetOutput).mkString      
       
     if (DEBUG) {
       println(options)      
