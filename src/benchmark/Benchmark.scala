@@ -55,8 +55,8 @@ object Benchmark {
   }
   
   def main(args: Array[String]): Unit = {
-    val writeAll = true
-    val nExecs = 2
+    val writeAll = false
+    val nExecs = 1
     
     val INIT = true
     val BRUTEFORCE = true
@@ -93,9 +93,9 @@ object Benchmark {
           "--k", "10",
           "--n", "5000", 
           "--debug", "false",
-          "--createData", "false", 
-          "--executors", "2",
-          "--output", "/home/schmidt/Desktop/benchmarks/results1_2_execs/",
+          "--createData", "false",
+          "--threshold", "0.05",
+          "--output", "/home/schmidt/Desktop/benchmarks/results_0.05_threshold/",
           "--nElements", "2000")
       var arg2 = Array(
           "--config", configPath + config + ".xml", 
@@ -103,9 +103,9 @@ object Benchmark {
           "--k", "10",
           "--n", "5000", 
           "--debug", "false",
-          "--createData", "false",   
-          "--executors", "4",          
-          "--output", "/home/schmidt/Desktop/benchmarks/results2_4_execs/",          
+          "--createData", "false",
+          "--threshold", "0.1",
+          "--output", "/home/schmidt/Desktop/benchmarks/results_0.1_threshold/",          
           "--nElements", "2000") 
       var arg3 = Array(
           "--config", configPath + config + ".xml", 
@@ -113,20 +113,20 @@ object Benchmark {
           "--k", "10",
           "--n", "5000", 
           "--debug", "false",
-          "--createData", "false",   
-          "--cores", "2",          
-          "--output", "/home/schmidt/Desktop/benchmarks/results2_2_cores/",          
+          "--createData", "false",  
+          "--threshold", "0.3",
+          "--output", "/home/schmidt/Desktop/benchmarks/results_0.3_threshold/",          
           "--nElements", "2000") 
       var arg4 = Array(
-          "--config", configPath + config + ".xml", 
+          "--config", configPath + "config4.xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "5000", 
+          "--n", "100000", 
           "--debug", "false",
-          "--createData", "false",   
-          "--cores", "4",          
-          "--output", "/home/schmidt/Desktop/benchmarks/results2_4_cores/",          
-          "--nElements", "2000")
+          "--createData", "true",   
+          "--nodes", "10",
+          "--output", "/home/schmidt/Desktop/benchmarks/results_100k/",          
+          "--nElements", "50000")
       
       var arguments = Array(arg1, arg2, arg3, arg4)
       
