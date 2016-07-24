@@ -26,12 +26,17 @@ object InvIdx {
     
     val threshold = Footrule.denormalizeThreshold(k, normThreshold)
     
-    val conf = new SparkConf().setMaster(master).setAppName("bruteForce").set("spark.driver.allowMultipleContexts", "true")
+    val conf = new SparkConf()
+              .setMaster(master)
+              .setAppName("invertedIndex")
+              .set("spark.driver.allowMultipleContexts", "true")
+              .set("spark.executor.cores", Args.cores)
+              .set("spark.executor.instances", Args.executors)
     
     val sc = new SparkContext(conf)
     try {  
       // Partition ranks
-      val ranksArray = Load.spaceSeparated(input, sc, Args.nodes)
+      val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
       
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, k)
       

@@ -86,68 +86,49 @@ object Benchmark {
       val file = new File("/home/schmidt/Desktop/benchmarks/benchmark_" + config + ".txt")
       val fw = new FileWriter(file, true)
       val bw = new BufferedWriter(fw)
-
-      /*var arg0 = Array(
-          "--config", configPath + config + ".xml", 
-          "--count", "false",
-          "--k", "10",
-          "--n", "1000", 
-          "--debug", "false",           
-          "--nElements", "100")
+          
       var arg1 = Array(
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "1000", 
-          "--debug", "false",          
-          "--nElements", "2000")*/
-          
+          "--n", "5000", 
+          "--debug", "false",
+          "--createData", "false", 
+          "--executors", "2",
+          "--output", "/home/schmidt/Desktop/benchmarks/results1_2_execs/",
+          "--nElements", "2000")
       var arg2 = Array(
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
           "--n", "5000", 
           "--debug", "false",
-          "--createData", "true",  
-          "--nodes", "5",          
-          "--output", "/home/schmidt/Desktop/benchmarks/results1/",
-          "--nElements", "2000")
+          "--createData", "false",   
+          "--executors", "4",          
+          "--output", "/home/schmidt/Desktop/benchmarks/results2_4_execs/",          
+          "--nElements", "2000") 
       var arg3 = Array(
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
           "--n", "5000", 
           "--debug", "false",
-          "--createData", "true", 
-          "--nodes", "10",          
-          "--output", "/home/schmidt/Desktop/benchmarks/results2/",          
-          "--nElements", "2000")              
-      /*var arg4 = Array(
+          "--createData", "false",   
+          "--cores", "2",          
+          "--output", "/home/schmidt/Desktop/benchmarks/results2_2_cores/",          
+          "--nElements", "2000") 
+      var arg4 = Array(
           "--config", configPath + config + ".xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "1000", 
+          "--n", "5000", 
           "--debug", "false",
-          "--createData", "true",
-          "--nodes", "10",
-          "--output", "/home/schmidt/Desktop/benchmarks/results3/",          
-          "--nElements", "2000")           
-      var arg4 = Array(
-          "--config", "config/config3.xml", 
-          "--count", "false", 
-          "--n", "10000", 
-          "--debug", "false",
-          "--createData", "true",          
-          "--nElements", "100")
-      var arg5 = Array(
-          "--config", "config/config3.xml", 
-          "--count", "false", 
-          "--n", "10000", 
-          "--debug", "false",
-          "--createData", "true",          
-          "--nElements", "100")*/
+          "--createData", "false",   
+          "--cores", "4",          
+          "--output", "/home/schmidt/Desktop/benchmarks/results2_4_cores/",          
+          "--nElements", "2000")
       
-      var arguments = Array(/*arg0, arg1,*/ arg2, arg3)//, arg4)//, arg5)
+      var arguments = Array(arg1, arg2, arg3, arg4)
       
       for (arg <- arguments) { 
         

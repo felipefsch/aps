@@ -75,12 +75,17 @@ object ElementSplit {
         println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
       }
       
-      val conf = new SparkConf().setMaster(master).setAppName("bruteForceFootrule")
+      val conf = new SparkConf()
+              .setMaster(master)
+              .setAppName("elementSplit")
+              .set("spark.driver.allowMultipleContexts", "true")
+              .set("spark.executor.cores", Args.cores)
+              .set("spark.executor.instances", Args.executors)
       
       val sc = new SparkContext(conf)
       
       try {
-        val ranks = Load.spaceSeparated(input, sc, Args.nodes)
+        val ranks = Load.spaceSeparated(input, sc, Args.partitions)
   
         // Create (Element, Pos, ID)
         val triples = ranks.flatMap(x => emitElementRankId(x))

@@ -21,7 +21,9 @@ object Args {
   var output = ""
   var datasetOutput = ""
   
-  var nodes = 1
+  var partitions = 1
+  var cores = "1"
+  var executors = "1"
   
   val usage = """
     Usage: mmlaln [--min-size num] [--max-size num] filename
@@ -67,7 +69,11 @@ object Args {
         case "--createData" :: value :: tail =>
                                nextOption(map ++ Map('createData -> value.toBoolean), tail) 
         case "--nodes" :: value :: tail =>
-                               nextOption(map ++ Map('nodes -> value.toInt), tail)                               
+                               nextOption(map ++ Map('nodes -> value.toInt), tail)
+        case "--cores" :: value :: tail =>
+                               nextOption(map ++ Map('cores -> value.toString()), tail)
+        case "--executors" :: value :: tail =>
+                               nextOption(map ++ Map('executors -> value.toString()), tail)                               
         /*case string :: opt2 :: tail if isSwitch(opt2) => 
                                nextOption(map ++ Map('infile -> string), list.tail)
         case string :: opt2 :: tail if isSwitch(opt2) => 
@@ -99,7 +105,7 @@ object Args {
       CREATEDATA = ((((configXml \\ "config") \\ "dataSet") \\ "createData").text).toBoolean
       input = ((configXml \\ "config") \\ "input").text
       output = ((configXml \\ "config") \\ "outputFolder").text
-      nodes = (((configXml \\ "config") \\ "nodes").text).toInt
+      partitions = (((configXml \\ "config") \\ "nodes").text).toInt
       datasetOutput = (((configXml \\ "config") \\ "dataSet") \\ "output").text
     }
     
@@ -129,7 +135,13 @@ object Args {
       output = options.get('output).mkString 
       
     if (options.get('nodes).isDefined)
-      nodes = options.get('nodes).mkString.toInt
+      partitions = options.get('nodes).mkString.toInt
+      
+    if (options.get('cores).isDefined)
+      cores = options.get('cores).mkString
+      
+    if (options.get('executors).isDefined)
+      executors = options.get('executors).mkString      
 
     if (options.get('datasetOutput).isDefined)
       datasetOutput = options.get('datasetOutput).mkString      

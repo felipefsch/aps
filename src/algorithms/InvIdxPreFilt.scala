@@ -29,12 +29,17 @@ object InvIdxPreFilt {
     
     threshold = Footrule.denormalizeThreshold(k, normThreshold)
     
-    val conf = new SparkConf().setMaster(master).setAppName("InvertedIndexPrefixFiltering").set("spark.driver.allowMultipleContexts", "true")
+    val conf = new SparkConf().setMaster(master)
+              .setMaster(master)
+              .setAppName("invertedIndexPrefixFiltFetchID")
+              .set("spark.driver.allowMultipleContexts", "true")
+              .set("spark.executor.cores", Args.cores)
+              .set("spark.executor.instances", Args.executors)
     
     val sc = new SparkContext(conf)
     try {  
       // Partition ranks
-      val ranksArray =  Load.spaceSeparated(input, sc, Args.nodes)
+      val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)
       
       var prefixSize = k - Footrule.getMinOverlap(k, threshold)
       
