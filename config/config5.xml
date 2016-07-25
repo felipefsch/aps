@@ -7,6 +7,8 @@
 	
 	<masterIp>local</masterIp>
 	
+	<nodes>1</nodes>	
+	
 	<!-- Store count of results for cross checking -->
 	<storeCount>false</storeCount>
 	
