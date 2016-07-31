@@ -23,7 +23,7 @@ object BruteForce {
     var input = Args.input    
     var output = Args.output + "BruteForce"
     
-    var master = ((configXml \\ "config") \\ "masterIp").text
+    var master = Args.masterIp
     var k = Args.k
     var storeCount = Args.COUNT
     

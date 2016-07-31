@@ -20,7 +20,7 @@ object InvIdx {
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdx"
-    var master = ((configXml \\ "config") \\ "masterIp").text
+    var master = Args.masterIp    
     var k = Args.k
     var storeCount = Args.COUNT    
     

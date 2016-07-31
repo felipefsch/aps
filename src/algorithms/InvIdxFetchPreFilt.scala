@@ -23,7 +23,7 @@ object InvIdxFetchPreFilt {
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxFetchPreFilt"
-    var master = ((configXml \\ "config") \\ "masterIp").text
+    var master = Args.masterIp    
     k = Args.k
     var storeCount = Args.COUNT    
     
