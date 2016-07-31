@@ -14,16 +14,14 @@ import utils._
 object Init {
   
   // Initialize context and so on to improve benchmark precision
-  def main(args: Array[String]): Unit = {  
-    // Load config from XML config file
-    val configXml = XML.loadFile("config/config1.xml")
+  def main(args: Array[String]): Unit = {
+    Args.parse(args)
+
+    var master = Args.masterIp
     
-    var threshold = (((configXml \\ "config") \\ "threshold").text).toDouble
-    var input = ((configXml \\ "config") \\ "input").text    
-    var output = (((configXml \\ "config") \\ "bruteForce") \\ "output").text
-    var master = ((configXml \\ "config") \\ "masterIp").text
-    
-    val conf = new SparkConf().setMaster(master).setAppName("bruteForce").set("spark.driver.allowMultipleContexts", "true")
+    val conf = new SparkConf().setMaster(master)
+                    .setAppName("init")
+                    .set("spark.driver.allowMultipleContexts", "true")
       
     val sc = new SparkContext(conf)
     
