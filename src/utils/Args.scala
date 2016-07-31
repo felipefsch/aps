@@ -20,6 +20,7 @@ object Args {
   var input = ""
   var output = ""
   var datasetOutput = ""
+  var masterIp = ""
   
   var partitions = 1
   var cores = "1"
@@ -51,7 +52,13 @@ object Args {
         case "--n" :: value :: tail =>
                                nextOption(map ++ Map('n -> value.toInt), tail)
         case "--threshold" :: value :: tail =>
-                               nextOption(map ++ Map('threshold -> value.toDouble), tail)                               
+                               nextOption(map ++ Map('threshold -> value.toDouble), tail)
+        case "--selectivity" :: value :: tail =>
+                               nextOption(map ++ Map('selectivity -> value.toDouble), tail)
+        case "--poolIntersection" :: value :: tail =>
+                               nextOption(map ++ Map('poolIntersection -> value.toDouble), tail)
+        case "--nPools" :: value :: tail =>
+                               nextOption(map ++ Map('nPools -> value.toInt), tail)                               
         case "--nElements" :: value :: tail =>
                                nextOption(map ++ Map('nElements -> value.toInt), tail)                               
         case "--config" :: value :: tail =>
@@ -73,12 +80,9 @@ object Args {
         case "--cores" :: value :: tail =>
                                nextOption(map ++ Map('cores -> value.toString()), tail)
         case "--executors" :: value :: tail =>
-                               nextOption(map ++ Map('executors -> value.toString()), tail)                               
-        /*case string :: opt2 :: tail if isSwitch(opt2) => 
-                               nextOption(map ++ Map('infile -> string), list.tail)
-        case string :: opt2 :: tail if isSwitch(opt2) => 
-                               nextOption(map ++ Map('infile -> string), list.tail)                               
-        case string :: Nil =>  nextOption(map ++ Map('infile -> string), list.tail)*/
+                               nextOption(map ++ Map('executors -> value.toString()), tail)
+        case "--masterIp" :: value :: tail =>
+                               nextOption(map ++ Map('masterIp -> value.toString()), tail)
         case option :: tail => println("Unknown option "+option)
                                exit(1) 
       }
@@ -93,6 +97,7 @@ object Args {
     if (options.get('config).isDefined) {
       configXml = XML.loadFile(options.get('config).mkString)
       COUNT = (((configXml \\ "config") \\ "storeCount").text).toBoolean
+      masterIp = ((configXml \\ "config") \\ "masterIp").text
       k = ((((configXml \\ "config") \\ "dataSet") \\ "k").text).toInt
       n = ((((configXml \\ "config") \\ "dataSet") \\ "n").text).toInt
       distinctElements = ((((configXml \\ "config") \\ "dataSet") \\ "distinctElements").text).toInt
@@ -117,10 +122,19 @@ object Args {
       n = options.get('n).mkString.toInt
       
     if (options.get('threshold).isDefined)
-      normThreshold = options.get('threshold).mkString.toDouble   
+      normThreshold = options.get('threshold).mkString.toDouble
+      
+    if (options.get('selectivity).isDefined)
+      selectivity = options.get('selectivity).mkString.toDouble
+      
+    if (options.get('poolIntersection).isDefined)
+      poolIntersection = options.get('poolIntersection).mkString.toDouble      
 
     if (options.get('nElements).isDefined)
-      distinctElements = options.get('nElements).mkString.toInt       
+      distinctElements = options.get('nElements).mkString.toInt
+      
+    if (options.get('nPools).isDefined)
+      nPools = options.get('nPools).mkString.toInt      
     
     if (options.get('count).isDefined)
       COUNT = options.get('count).mkString.toBoolean
@@ -132,7 +146,10 @@ object Args {
       input = options.get('input).mkString      
 
     if (options.get('output).isDefined)
-      output = options.get('output).mkString 
+      output = options.get('output).mkString
+      
+    if (options.get('masterIp).isDefined)
+      masterIp = options.get('masterIp).mkString      
       
     if (options.get('nodes).isDefined)
       partitions = options.get('nodes).mkString.toInt
