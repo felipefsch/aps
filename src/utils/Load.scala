@@ -35,11 +35,11 @@ object Load {
      * 
      * Load space separated ranking with ID as first element
      */
-    def spaceSeparated ( path: String, sc: SparkContext, nodes: Int )
+    def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
     : RDD[(Long, Array[Long])] = {
       
       // File reading
-      val file = sc.textFile(path).repartition(nodes)
+      val file = sc.textFile(path).repartition(partitions)
       
       // Split elements
       val ranks = file.map(a => a.split(" ").map(_.toLong))

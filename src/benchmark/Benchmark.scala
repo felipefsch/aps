@@ -114,21 +114,21 @@ object Benchmark {
           "--n", "5000", 
           "--debug", "false",
           "--createData", "false",  
-          "--threshold", "0.3",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_0.3_threshold/",          
+          "--threshold", "0.2",
+          "--output", "/home/schmidt/Desktop/benchmarks/results_0.2_threshold/",          
           "--nElements", "2000") 
       var arg4 = Array(
           "--config", configPath + "config4.xml", 
           "--count", "false", 
           "--k", "10",
-          "--n", "100000", 
+          "--n", "50000", 
           "--debug", "false",
           "--createData", "true",   
           "--nodes", "10",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_100k/",          
-          "--nElements", "50000")
+          "--output", "/home/schmidt/Desktop/benchmarks/results_50k/",          
+          "--nElements", "20000")
       
-      var arguments = Array(arg1, arg2, arg3, arg4)
+      var arguments = Array(/*arg1, arg2, arg3,*/ arg4)
       
       for (arg <- arguments) { 
         

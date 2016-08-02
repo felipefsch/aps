@@ -14,9 +14,7 @@ object InvIdx {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-
-    val configXml = Args.configXml
-    
+   
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdx"

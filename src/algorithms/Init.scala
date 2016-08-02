@@ -19,6 +19,9 @@ object Init {
 
     var master = Args.masterIp
     
+    if (Args.DEBUG)
+      println("[DEBUG] Initializing Spark context...")
+    
     val conf = new SparkConf().setMaster(master)
                     .setAppName("init")
                     .set("spark.driver.allowMultipleContexts", "true")
@@ -26,5 +29,8 @@ object Init {
     val sc = new SparkContext(conf)
     
     sc.stop()
+    
+    if (Args.DEBUG)
+      println("[DEBUG] Spark context initialized!")
   }
 }

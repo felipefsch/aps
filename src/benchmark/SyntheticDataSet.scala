@@ -264,8 +264,6 @@ object SyntheticDataSet {
   def main(args: Array[String]) {
     Args.parse(args)
 
-    val configXml = Args.configXml
-
     var k = Args.k
     var n = Args.n
     var distinctElements = Args.distinctElements

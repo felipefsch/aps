@@ -8,7 +8,7 @@ object Args {
   var COUNT = false
   var CREATEDATA = false
   
-  var configXml = XML.loadFile("config/config0.xml")
+  var configFilePath = ""
   var k = 0
   var n = 0
   var distinctElements = 0
@@ -20,14 +20,38 @@ object Args {
   var input = ""
   var output = ""
   var datasetOutput = ""
-  var masterIp = ""
+  var masterIp = "local"
   
   var partitions = 1
   var cores = "1"
   var executors = "1"
   
   val usage = """
-    Usage: mmlaln [--min-size num] [--max-size num] filename
+usage: class [options] ...
+classes:
+       algorithms.Init
+       algorithms.Benchmark
+       algorithms.SyntheticDataSet
+
+options: 
+       --k                N    : ranking size
+       --n                N    : number of rankings
+       --threshold        N.M  : normalized similarity threshold
+       --selectivity      N.M  : selectivity percentage
+       --poolIntersection N.M  : intersection percentage
+       --nPools           N    : number of pools for intersecting rankings
+       --nElements        N    : number of distinct elements
+       --config           PATH : path to XML configuration file
+       --input            PATH : input dataset path
+       --output           PATH : result output path
+       --datasetOutput    PATH : dataset output path (when creating new ones)
+       --count            BOOL : count number of result pairs
+       --debug            BOOL : debug mode
+       --createData       BOOL : create synthetic dataset
+       --partitions       N    : number of partitions for repartitioning
+       --cores            N    : number of cores to use on local machine
+       --executors        N    : number of executors on local machine
+       --masterIp         IP   : master node IP
   """
   
   /**
@@ -75,27 +99,24 @@ object Args {
                                nextOption(map ++ Map('debug -> value.toBoolean), tail)
         case "--createData" :: value :: tail =>
                                nextOption(map ++ Map('createData -> value.toBoolean), tail) 
-        case "--nodes" :: value :: tail =>
-                               nextOption(map ++ Map('nodes -> value.toInt), tail)
+        case "--partitions" :: value :: tail =>
+                               nextOption(map ++ Map('partitions -> value.toInt), tail)
         case "--cores" :: value :: tail =>
                                nextOption(map ++ Map('cores -> value.toString()), tail)
         case "--executors" :: value :: tail =>
                                nextOption(map ++ Map('executors -> value.toString()), tail)
         case "--masterIp" :: value :: tail =>
                                nextOption(map ++ Map('masterIp -> value.toString()), tail)
-        case option :: tail => println("Unknown option "+option)
+        case option :: tail => println("Unknown option " + option + "\n" + usage)
                                exit(1) 
       }
     }
     
     val options = nextOption(Map(),arglist)
-    
-    if (options.get('createData).isDefined)
-      CREATEDATA = options.get('createData).mkString.toBoolean      
-   
+  
     // Parameters from XML file
     if (options.get('config).isDefined) {
-      configXml = XML.loadFile(options.get('config).mkString)
+      var configXml = XML.loadFile(options.get('config).mkString)
       COUNT = (((configXml \\ "config") \\ "storeCount").text).toBoolean
       masterIp = ((configXml \\ "config") \\ "masterIp").text
       k = ((((configXml \\ "config") \\ "dataSet") \\ "k").text).toInt
@@ -110,9 +131,16 @@ object Args {
       CREATEDATA = ((((configXml \\ "config") \\ "dataSet") \\ "createData").text).toBoolean
       input = ((configXml \\ "config") \\ "input").text
       output = ((configXml \\ "config") \\ "outputFolder").text
-      partitions = (((configXml \\ "config") \\ "nodes").text).toInt
+      partitions = (((configXml \\ "config") \\ "partitions").text).toInt
       datasetOutput = (((configXml \\ "config") \\ "dataSet") \\ "output").text
+      
+      if (DEBUG) {
+        println(configXml)
+      }      
     }
+    
+    if (options.get('createData).isDefined)
+      CREATEDATA = options.get('createData).mkString.toBoolean    
     
     // Overwrite with passed by argument values    
     if (options.get('k).isDefined)
@@ -151,8 +179,8 @@ object Args {
     if (options.get('masterIp).isDefined)
       masterIp = options.get('masterIp).mkString      
       
-    if (options.get('nodes).isDefined)
-      partitions = options.get('nodes).mkString.toInt
+    if (options.get('partitions).isDefined)
+      partitions = options.get('partitions).mkString.toInt
       
     if (options.get('cores).isDefined)
       cores = options.get('cores).mkString
@@ -164,10 +192,7 @@ object Args {
       datasetOutput = options.get('datasetOutput).mkString      
       
     if (DEBUG) {
-      println(options)      
-      if (options.get('config).isDefined) {
-        println(configXml)
-      }
+      println(options)
     }
   }  
 }
