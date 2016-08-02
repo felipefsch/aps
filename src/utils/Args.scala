@@ -8,6 +8,17 @@ object Args {
   var COUNT = false
   var CREATEDATA = false
   
+  var writeAll = true
+  var nExecs = 1
+  var INIT = true
+  var BRUTEFORCE = true
+  var ELEMENTSPLIT = true
+  var INVIDX = true
+  var INVIDXPRE = true
+  var INVIDXFETCH = true
+  var INVIDXPREFETCH = true
+  var benchmarkPath = ""
+  
   var configFilePath = ""
   var k = 0
   var n = 0
@@ -29,29 +40,39 @@ object Args {
   val usage = """
 usage: class [options] ...
 classes:
-       algorithms.Init
-       algorithms.Benchmark
-       algorithms.SyntheticDataSet
+   algorithms.Init
+   algorithms.Benchmark
+   algorithms.SyntheticDataSet
 
 options: 
-       --k                N    : ranking size
-       --n                N    : number of rankings
-       --threshold        N.M  : normalized similarity threshold
-       --selectivity      N.M  : selectivity percentage
-       --poolIntersection N.M  : intersection percentage
-       --nPools           N    : number of pools for intersecting rankings
-       --nElements        N    : number of distinct elements
-       --config           PATH : path to XML configuration file
-       --input            PATH : input dataset path
-       --output           PATH : result output path
-       --datasetOutput    PATH : dataset output path (when creating new ones)
-       --count            BOOL : count number of result pairs
-       --debug            BOOL : debug mode
-       --createData       BOOL : create synthetic dataset
-       --partitions       N    : number of partitions for repartitioning
-       --cores            N    : number of cores to use on local machine
-       --executors        N    : number of executors on local machine
-       --masterIp         IP   : master node IP
+   --k                N    : ranking size
+   --n                N    : number of rankings
+   --threshold        N.M  : normalized similarity threshold
+   --selectivity      N.M  : selectivity percentage
+   --poolIntersection N.M  : intersection percentage
+   --nPools           N    : number of pools for intersecting rankings
+   --nElements        N    : number of distinct elements
+   --config           PATH : path to XML configuration file
+   --input            PATH : input dataset path
+   --output           PATH : result output path
+   --datasetOutput    PATH : dataset output path (when creating new ones)
+   --benchmarkOutput  PATH : benchmarking results output path
+   --count            BOOL : count number of result pairs
+   --debug            BOOL : debug mode
+   --createData       BOOL : create synthetic dataset
+   --partitions       N    : number of partitions for repartitioning
+   --cores            N    : number of cores to use on local machine
+   --executors        N    : number of executors on local machine
+   --masterIp         IP   : master node IP
+   --nExecs           N    : number of executions of each algorithm
+   --writeAll         BOOL : write execution time for each execution
+   --init             BOOL : run Spark context initialization
+   --bruteforce       BOOL : run brute force
+   --elementsplit     BOOL : run elementsplit
+   --invidx           BOOL : run inverted index
+   --invidxpre        BOOL : run inverted index prefix filtering
+   --invidxfetch      BOOL : run inverted index fetching IDs
+   --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
   """
   
   /**

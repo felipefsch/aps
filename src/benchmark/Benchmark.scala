@@ -55,176 +55,113 @@ object Benchmark {
   }
   
   def main(args: Array[String]): Unit = {
-    val writeAll = false
-    val nExecs = 1
+    Args.parse(args)
     
-    val INIT = true
-    val BRUTEFORCE = true
-    val ELEMENTSPLIT = true
-    val INVIDX = true
-    val INVIDXPRE = true
-    val INVIDXFETCH = true
-    val INVIDXPREFETCH = true
+    var nExecs = Args.nExecs
+    var writeAll = Args.writeAll
 
     // Initialize spark and so on to do not influence in the final execution time
-    if (INIT) {
+    if (Args.INIT) {
       try {
         algorithms.Init.main(Array())        
       } catch {
         case e:
           Exception => println(e.toString() + "\n\n")
       }
-    }           
-        
-    var configPath = "config/"
-    var configs = Array("config6")/*"config0", "config1",
-        "config2_0", "config2_1", "config2_2", "config2_3", "config2_4", "config2_5", 
-        "config3", "config4", "config5")  */   
-    
-    for (config <- configs) {  
-      
-      val file = new File("/home/schmidt/Desktop/benchmarks/benchmark_" + config + ".txt")
+    }  
+     
+      val file = new File("/home/schmidt/Desktop/benchmarks/benchmark_" + Args.benchmarkPath + ".txt")
       val fw = new FileWriter(file, true)
       val bw = new BufferedWriter(fw)
-          
-      var arg1 = Array(
-          "--config", configPath + config + ".xml", 
-          "--count", "false", 
-          "--k", "10",
-          "--n", "5000", 
-          "--debug", "false",
-          "--createData", "false",
-          "--threshold", "0.05",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_0.05_threshold/",
-          "--nElements", "2000")
-      var arg2 = Array(
-          "--config", configPath + config + ".xml", 
-          "--count", "false", 
-          "--k", "10",
-          "--n", "5000", 
-          "--debug", "false",
-          "--createData", "false",
-          "--threshold", "0.1",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_0.1_threshold/",          
-          "--nElements", "2000") 
-      var arg3 = Array(
-          "--config", configPath + config + ".xml", 
-          "--count", "false", 
-          "--k", "10",
-          "--n", "5000", 
-          "--debug", "false",
-          "--createData", "false",  
-          "--threshold", "0.2",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_0.2_threshold/",          
-          "--nElements", "2000") 
-      var arg4 = Array(
-          "--config", configPath + "config4.xml", 
-          "--count", "false", 
-          "--k", "10",
-          "--n", "50000", 
-          "--debug", "false",
-          "--createData", "true",   
-          "--nodes", "10",
-          "--output", "/home/schmidt/Desktop/benchmarks/results_50k/",          
-          "--nElements", "20000")
       
-      var arguments = Array(/*arg1, arg2, arg3,*/ arg4)
-      
-      for (arg <- arguments) { 
-        
-        Args.parse(arg)
-        
-        bw.append("\n\n###############################################\n")
-        bw.append("# Benchmarking args: " + arg.mkString(" ") + "\n")        
-        bw.append("# Benchmarking config: " + config + "\n")
-        bw.append("###############################################\n\n")
-        bw.flush()
-      
-        if (Args.CREATEDATA) {
-          try {          
-            benchmark.SyntheticDataSet.main(arg)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }  
-        }
-        
-        bw.flush()
-        
-        if (ELEMENTSPLIT) {
-          bw.append("###Element Split:\n")
-          try {
-            execTimeAvg(algorithms.ElementSplit.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }
-        }     
-        
-        bw.flush()        
-        
-        if (BRUTEFORCE) {
-          bw.append("###Brute Force:\n")
-          try {
-            execTimeAvg(algorithms.BruteForce.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }
-        }
-        
-        bw.flush()
-        
-        if (INVIDXPREFETCH) {
-          bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
-          try {
-            execTimeAvg(algorithms.InvIdxFetchPreFilt.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }  
-        }      
-        
-        bw.flush()
-        
-        if (INVIDXPRE) {
-          bw.append("###Inverted Index Prefix Filtering:\n")
-          try {
-            execTimeAvg(algorithms.InvIdxPreFilt.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }     
-        }       
-        
-        bw.flush()        
-        
-        if (INVIDXFETCH) {
-          bw.append("###Inverted Index Fetching IDs:\n")
-          try {
-            execTimeAvg(algorithms.InvIdxFetch.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }
-        }
-        
-        bw.flush()        
-        
-        if (INVIDX) {
-          bw.append("###Inverted Index:\n")
-          try {
-            execTimeAvg(algorithms.InvIdx.main(arg), nExecs, bw, writeAll)
-          } catch {
-            case e:
-              Exception => bw.append(e.toString() + "\n\n")
-          }
-        }   
-        
-        bw.flush()       
-        
+      bw.append("\n\n###############################################\n")    
+      bw.append("# Benchmarking config: " + Args.benchmarkPath + "\n")
+      bw.append("###############################################\n\n")
+      bw.flush()
+    
+      if (Args.CREATEDATA) {
+        try {          
+          benchmark.SyntheticDataSet.main(args)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }  
       }
-      bw.close()      
-    }
+      
+      bw.flush()
+      
+      if (Args.ELEMENTSPLIT) {
+        bw.append("###Element Split:\n")
+        try {
+          execTimeAvg(algorithms.ElementSplit.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }
+      }     
+      
+      bw.flush()        
+      
+      if (Args.BRUTEFORCE) {
+        bw.append("###Brute Force:\n")
+        try {
+          execTimeAvg(algorithms.BruteForce.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }
+      }
+      
+      bw.flush()
+      
+      if (Args.INVIDXPREFETCH) {
+        bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
+        try {
+          execTimeAvg(algorithms.InvIdxFetchPreFilt.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }  
+      }      
+      
+      bw.flush()
+      
+      if (Args.INVIDXPRE) {
+        bw.append("###Inverted Index Prefix Filtering:\n")
+        try {
+          execTimeAvg(algorithms.InvIdxPreFilt.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }     
+      }       
+      
+      bw.flush()        
+      
+      if (Args.INVIDXFETCH) {
+        bw.append("###Inverted Index Fetching IDs:\n")
+        try {
+          execTimeAvg(algorithms.InvIdxFetch.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }
+      }
+      
+      bw.flush()        
+      
+      if (Args.INVIDX) {
+        bw.append("###Inverted Index:\n")
+        try {
+          execTimeAvg(algorithms.InvIdx.main(args), nExecs, bw, writeAll)
+        } catch {
+          case e:
+            Exception => bw.append(e.toString() + "\n\n")
+        }
+      }   
+      
+      bw.flush()       
+
+      bw.close()
   }
 }
