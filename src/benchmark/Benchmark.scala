@@ -63,12 +63,23 @@ object Benchmark {
     // Initialize spark and so on to do not influence in the final execution time
     if (Args.INIT) {
       try {
-        algorithms.Init.main(Array())        
+        algorithms.Init.main(args)        
       } catch {
         case e:
           Exception => println(e.toString() + "\n\n")
       }
-    }  
+    }
+  
+    if (Args.CREATEDATA) {
+      try {          
+        benchmark.SyntheticDataSet.main(args)
+      } catch {
+        case e:
+          Exception => println("\n" + e.toString() + "\n")
+      }  
+    }
+    
+    if (Args.BENCHMARK) {
      
       val file = new File(Args.benchmarkPath)
       val fw = new FileWriter(file, true)
@@ -77,18 +88,7 @@ object Benchmark {
       bw.append("\n\n###############################################\n")    
       bw.append("# Benchmarking config: " + Args.benchmarkPath + "\n")
       bw.append("###############################################\n\n")
-      bw.flush()
-    
-      if (Args.CREATEDATA) {
-        try {          
-          benchmark.SyntheticDataSet.main(args)
-        } catch {
-          case e:
-            Exception => bw.append(e.toString() + "\n\n")
-        }  
-      }
-      
-      bw.flush()
+      bw.flush()      
       
       if (Args.ELEMENTSPLIT) {
         bw.append("###Element Split:\n")
@@ -160,8 +160,9 @@ object Benchmark {
         }
       }   
       
-      bw.flush()       
-
+      bw.flush()
+      
       bw.close()
+    }
   }
 }

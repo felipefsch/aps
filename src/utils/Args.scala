@@ -4,6 +4,8 @@ import scala.xml.XML
 
 object Args {
   
+  var ARGS = Array("")
+  
   var DEBUG = false
   var COUNT = false
   var CREATEDATA = false
@@ -17,6 +19,7 @@ object Args {
   var INVIDXPRE = true
   var INVIDXFETCH = true
   var INVIDXPREFETCH = true
+  var BENCHMARK = true
   var benchmarkPath = ""
   
   var configFilePath = ""
@@ -41,9 +44,8 @@ object Args {
 usage: class [options] ...
 classes:
    algorithms.Init
-   algorithms.Benchmark
-   algorithms.SyntheticDataSet
-
+   benchmark.Benchmark
+   benchmark.SyntheticDataSet
 options: 
    --k                N    : ranking size
    --n                N    : number of rankings
@@ -73,6 +75,7 @@ options:
    --invidxpre        BOOL : run inverted index prefix filtering
    --invidxfetch      BOOL : run inverted index fetching IDs
    --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
+   --benchmark        BOOL : run benchmarking (false dont run any approach)
   """
   
   /**
@@ -81,10 +84,14 @@ options:
    * accessible through global variables defined on the top of this
    * file.
    */
-  def parse(args: Array[String]) {  
+  def parse(args: Array[String]) {
     
-    if (args.length == 0) println(usage)
+    if (args.length == 0)  {
+      println(usage)
+    }
+    
     val arglist = args.toList
+    
     type OptionMap = Map[Symbol, Any]
 
     def nextOption(map : OptionMap, list: List[String]) : OptionMap = {
@@ -119,7 +126,7 @@ options:
         case "--debug" :: value :: tail =>
                                nextOption(map ++ Map('debug -> value.toBoolean), tail)
         case "--createData" :: value :: tail =>
-                               nextOption(map ++ Map('createData -> value.toBoolean), tail) 
+                               nextOption(map ++ Map('createData -> value.toBoolean), tail)                             
         case "--partitions" :: value :: tail =>
                                nextOption(map ++ Map('partitions -> value.toInt), tail)
         case "--cores" :: value :: tail =>
@@ -128,7 +135,21 @@ options:
                                nextOption(map ++ Map('executors -> value.toString()), tail)
         case "--masterIp" :: value :: tail =>
                                nextOption(map ++ Map('masterIp -> value.toString()), tail)
-        case option :: tail => println("Unknown option " + option + "\n" + usage)
+        case "--benchmark" :: value :: tail =>
+                               nextOption(map ++ Map('benchmark -> value.toBoolean), tail)  
+        case "--init" :: value :: tail =>
+                               nextOption(map ++ Map('init -> value.toBoolean), tail)  
+        case "--invidx" :: value :: tail =>
+                               nextOption(map ++ Map('invidx -> value.toBoolean), tail)
+        case "--invidxpre" :: value :: tail =>
+                               nextOption(map ++ Map('invidxpre -> value.toBoolean), tail)  
+        case "--invidxfetch" :: value :: tail =>
+                               nextOption(map ++ Map('invidxfetch -> value.toBoolean), tail)  
+        case "--invidxprefetch" :: value :: tail =>
+                               nextOption(map ++ Map('invidxprefetch -> value.toBoolean), tail)  
+        case "--elementsplit" :: value :: tail =>
+                               nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)                                 
+        case option :: tail => println("Unknown option " + option + usage)
                                exit(1) 
       }
     }
@@ -158,10 +179,7 @@ options:
       if (DEBUG) {
         println(configXml)
       }      
-    }
-    
-    if (options.get('createData).isDefined)
-      CREATEDATA = options.get('createData).mkString.toBoolean    
+    }   
     
     // Overwrite with passed by argument values    
     if (options.get('k).isDefined)
@@ -190,6 +208,12 @@ options:
 
     if (options.get('debug).isDefined)
       DEBUG = options.get('debug).mkString.toBoolean
+    
+    if (options.get('createData).isDefined)
+      CREATEDATA = options.get('createData).mkString.toBoolean
+      
+    if (options.get('benchmark).isDefined)
+      CREATEDATA = options.get('benchmark).mkString.toBoolean      
 
     if (options.get('input).isDefined)
       input = options.get('input).mkString      
@@ -210,7 +234,31 @@ options:
       executors = options.get('executors).mkString      
 
     if (options.get('datasetOutput).isDefined)
-      datasetOutput = options.get('datasetOutput).mkString      
+      datasetOutput = options.get('datasetOutput).mkString   
+      
+    if (options.get('benchmark).isDefined)
+      BENCHMARK = options.get('benchmark).mkString.toBoolean 
+      
+    if (options.get('init).isDefined)
+      INIT = options.get('init).mkString.toBoolean
+      
+    if (options.get('bruteforce).isDefined)
+      BRUTEFORCE = options.get('bruteforce).mkString.toBoolean 
+      
+    if (options.get('invidx).isDefined)
+      INVIDX = options.get('invidx).mkString.toBoolean
+      
+    if (options.get('invidxpre).isDefined)
+      INVIDXPRE = options.get('invidxpre).mkString.toBoolean 
+      
+    if (options.get('invidxfetch).isDefined)
+      INVIDXFETCH = options.get('invidxfetch).mkString.toBoolean
+
+    if (options.get('invidxprefetch).isDefined)
+      INVIDXPREFETCH = options.get('invidxprefetch).mkString.toBoolean
+
+    if (options.get('elementsplit).isDefined)
+      ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean      
       
     if (DEBUG) {
       println(options)
