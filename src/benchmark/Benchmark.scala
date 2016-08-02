@@ -70,7 +70,7 @@ object Benchmark {
       }
     }  
      
-      val file = new File("/home/schmidt/Desktop/benchmarks/benchmark_" + Args.benchmarkPath + ".txt")
+      val file = new File(Args.benchmarkPath)
       val fw = new FileWriter(file, true)
       val bw = new BufferedWriter(fw)
       
