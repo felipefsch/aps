@@ -213,7 +213,7 @@ options:
       CREATEDATA = options.get('createData).mkString.toBoolean
       
     if (options.get('benchmark).isDefined)
-      CREATEDATA = options.get('benchmark).mkString.toBoolean      
+      BENCHMARK = options.get('benchmark).mkString.toBoolean      
 
     if (options.get('input).isDefined)
       input = options.get('input).mkString      
