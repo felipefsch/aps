@@ -6,103 +6,18 @@ import utils.Footrule
 import utils.Args
 
 object SyntheticDataSet {
-
-  private var DEBUG = true
   
   private var increaseSequential = true
-  
-  /**
-   * Input:
-   * -k: size of ranking
-   * -n: number of rankings
-   * -output: path where to store data set
-   * -distinctElements: number of elements in the domain
-   * 
-   * Space separated random data set, without any control on the overlap
-   * and with sequential ranking ID number.
-   */
-  def randomWithID(k: Int, n: Int, output: String, distinctElements: Int)
-  : Unit = {
-    val file = new File(output)
-    
-    if (file.exists()) {
-      println("Output file \"" + output + "\" already exists! Process stopped")
-      return
-    }
-    
-    val bw = new BufferedWriter(new FileWriter(file))
-    
-    val rand = scala.util.Random    
-    
-    for (i <- 0 until n) {
-      
-      // Initialize array with 0 in all its positions
-      val ranking = Array.ofDim[Int](k)
-      
-      for (j <- 0 until k) {
-        // Avoid element 0
-        var r = 0
-        var done = false
-        
-        // Check for possible existing value
-        while (!done) {
-          r = rand.nextInt(distinctElements + 1)
-          if (!ranking.contains(r))
-            done = true
-        }
-        ranking(j) = r
-      }
-      //Add sequencial number in first position as ID
-      bw.append(i + " " + ranking.mkString(" "))
-      bw.newLine()
-    }
-    bw.close()
-  }
-  
-  /**
-   * Input:
-   * -k: size of ranking
-   * -n: number of rankings
-   * -output: path where to store data set
-   * 
-   * Space separated data set with no overlap between rankings and
-   * sequential ranking ID numbers.
-   */
-  def noOverlap(k: Int, n:Int, output: String) : Unit = {
-    val file = new File(output)
-    
-    if (file.exists()) {
-      println("Output file \"" + output + "\" already exists! Process stopped")
-      return
-    }
-    
-    val bw = new BufferedWriter(new FileWriter(file))
-    
-    var rankingID = 0
-    var element = 0
-
-    // Initialize array with 0 in all its positions
-    val ranking = Array.ofDim[Int](k)
-    
-    for (i <- 0 until n) {
-      for (j <- 0 until k) {
-        ranking(j) = element
-        element += 1
-      }
-      
-      bw.append(i + " " + ranking.mkString(" "))
-      bw.newLine()
-      
-      rankingID += 1
-    }
-    
-    bw.close()
-  }
 
   /**
+   * Input:
+   * -sequential: current sequential number
+   * -min: minimum sequential number
+   * -max: maximum sequential number
+   *  
    * Change sequential element to be only within specified range
    */
-  def changeSequential(sequential: Long, min: Long, max: Long) : Long = {
+  private def changeSequential(sequential: Long, min: Long, max: Long) : Long = {
     
     if (sequential == min) {
       increaseSequential = true
@@ -144,11 +59,8 @@ object SyntheticDataSet {
   : Long = {
     val rand = scala.util.Random
     val itemsFromPool = rand.nextInt((maxPoolElements - minPoolElements + 1).toInt) + minPoolElements
-
-    // Elements from pool inserted on beginning or end of ranking
-    val isBackwards = false //rand.nextBoolean()    
     
-    if (DEBUG) {
+    if (Args.DEBUG) {
       println("### Creating Ranking ID " + id)      
       println("k: " + k)
       println("Pool: " + pool.mkString(" "))
@@ -157,13 +69,12 @@ object SyntheticDataSet {
       println("Min pool elements: " + minPoolElements)
       println("Max pool elements: " + maxPoolElements)    
       println("Next sequential: " + minSequential)
-      println("Backwards: " + isBackwards)
     }
     
     // Start always from first element, otherwise no overlapping rankings
     var poolIndex = 0//rand.nextInt(pool.size - itemsFromPool.toInt + 1)
     
-    if (DEBUG) {
+    if (Args.DEBUG) {
       println("Pool starting index: " + poolIndex)
       println("Max start index: " + (pool.size - itemsFromPool.toInt))
     }    
@@ -175,37 +86,22 @@ object SyntheticDataSet {
     var index = 0
     
     // Elements from pool
-    for (i <- 0 until itemsFromPool.toInt) {
-      
-      if (isBackwards) {
-        index = k - i - 1
-      }
-      else {
-        index = i
+    for (i <- 0 until itemsFromPool.toInt) { 
+      if (Args.DEBUG) {
+        println("From pool on position: " + i + " value " + pool(poolIndex))
       }
  
-      if (DEBUG) {
-        println("From pool on position: " + index + " value " + pool(poolIndex))
-      }
- 
-      ranking(index) = pool(poolIndex)
+      ranking(i) = pool(poolIndex)
       poolIndex += 1
     }
     
     // Non-overlapping elements
     for (i <- itemsFromPool.toInt until k) {
-      if (isBackwards) {
-        index = k - i - 1
-      }
-      else {
-        index = i
-      }
- 
-      if (DEBUG) {
-        println("Not from pool on position: " + index + " value " + sequential)
+      if (Args.DEBUG) {
+        println("Not from pool on position: " + i + " value " + sequential)
       }
       
-      ranking(index) = sequential
+      ranking(i) = sequential
       
       sequential = changeSequential(sequential, minSequential, maxSequential)
     }
@@ -231,7 +127,7 @@ object SyntheticDataSet {
    * 
    *    
    */
-  def controlledOverlap(k: Int,
+  def create(k: Int,
       n: Int,
       output: String,
       threshold: Double,
@@ -262,7 +158,7 @@ object SyntheticDataSet {
     // to achieve minimum threshold
     var minCommonElements = k - maxNonCommonElements
 
-    if (DEBUG) {
+    if (Args.DEBUG) {
       println("###### CREATING NEW SYNTHETIC DATA SET ######")
       println("n: " + n)
       println("k: " + k)
@@ -273,8 +169,6 @@ object SyntheticDataSet {
       println("Number of pools: " + nPools)
       println("Intersection between pools: " + poolIntersection)
       println("Selectivity: " + selectivity)
-      //println("Possible combinations: " + combinations)
-      //println("Expected output pairs: " + (combinations * selectivity))
     }
     
     val file = new File(output)
@@ -282,8 +176,8 @@ object SyntheticDataSet {
     if (file.exists() && Args.CREATEDATA) {
       file.delete()
       
-      if (DEBUG)
-        println("Delting input file " + file)
+      if (Args.DEBUG)
+        println("Delting existing input file " + file)
     }
     
     val bw = new BufferedWriter(new FileWriter(file))
@@ -324,7 +218,7 @@ object SyntheticDataSet {
     // Each partition uses one pool and the partitions are uniformly distributed
     for (p <- 0 until nPools) {
       
-      if (DEBUG) {
+      if (Args.DEBUG) {
         println("\n\n#####Using pool " + p + "#####")
         println("Pruned pool position slice [" + prunedFirstIndex + "," + prunedLastIndex + ")")
         println("Pruned pool elements intersection: " + nIntersecPruned)
@@ -375,25 +269,29 @@ object SyntheticDataSet {
     var k = Args.k
     var n = Args.n
     var distinctElements = Args.distinctElements
-    var output = Args.datasetOutput//(((configXml \\ "config") \\ "dataSet") \\ "output").text
+    var output = Args.datasetOutput
     var normThreshold = Args.normThreshold
-    var nPools = ((((configXml \\ "config") \\ "dataSet") \\ "nPool").text).toInt
-    var selectivity = ((((configXml \\ "config") \\ "dataSet") \\ "selectivity").text).toDouble
-    var poolIntersection = ((((configXml \\ "config") \\ "dataSet") \\ "poolIntersection").text).toDouble
-    DEBUG = Args.DEBUG
+    var nPools = Args.nPools
+    var selectivity = Args.selectivity
+    var poolIntersection = Args.poolIntersection
 
     // Maximum number of distinct elements if -1 used
-    if (distinctElements == -1)
+    if (distinctElements < 0)
       distinctElements = n * k
     
-    if (DEBUG)
+    if (Args.DEBUG)
       println("CREATING DATA SET")
     
-    //randomWithID(k, n, output, distinctElements)
-    //noOverlap(k, n, output)
-    controlledOverlap(k, n, output, normThreshold, selectivity, nPools, poolIntersection, distinctElements)
+    create(k,
+                      n,
+                      output,
+                      normThreshold,
+                      selectivity,
+                      nPools,
+                      poolIntersection,
+                      distinctElements)
 
-    if (DEBUG)
+    if (Args.DEBUG)
       println("DONE!")
   }
   
