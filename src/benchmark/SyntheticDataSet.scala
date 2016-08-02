@@ -240,7 +240,8 @@ object SyntheticDataSet {
       // Generate pairs that will not be selected in the output
       for (j <- 0 until nNotSelected) {
         var slicedPool = poolPruned.slice(prunedFirstIndex.toInt,prunedLastIndex.toInt)
-        currentSequential = createRanking(k, slicedPool, 0, minOverlap - 1, currentSequential, minSequential, maxSequential, id, bw)
+        // Dont use second pool to have skew only on elements that will be selected
+        currentSequential = createRanking(k, slicedPool, 0, 0 /*minOverlap - 1*/, currentSequential, minSequential, maxSequential, id, bw)
         id += 1
       }
       
@@ -280,14 +281,16 @@ object SyntheticDataSet {
     if (Args.DEBUG)
       println("CREATING DATA SET")
     
-    create(k,
-                      n,
-                      output,
-                      normThreshold,
-                      selectivity,
-                      nPools,
-                      poolIntersection,
-                      distinctElements)
+    create(
+          k,
+          n,
+          output,
+          normThreshold,
+          selectivity,
+          nPools,
+          poolIntersection,
+          distinctElements
+          )
 
     if (Args.DEBUG)
       println("DONE!")
