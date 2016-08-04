@@ -3,15 +3,12 @@ package utils
 import scala.xml.XML
 
 object Args {
-  
-  var ARGS = Array("")
-  
   var DEBUG = false
   var COUNT = false
   var CREATEDATA = false
   
   var writeAll = true
-  var nExecs = 1
+  var nExecs = 2
   var INIT = true
   var BRUTEFORCE = true
   var ELEMENTSPLIT = true
@@ -20,7 +17,7 @@ object Args {
   var INVIDXFETCH = true
   var INVIDXPREFETCH = true
   var BENCHMARK = true
-  var benchmarkPath = ""
+  var benchmarkOutput = ""
   
   var configFilePath = ""
   var k = 0
@@ -120,13 +117,19 @@ options:
         case "--output" :: value :: tail =>
                                nextOption(map ++ Map('output -> value.toString()), tail)
         case "--datasetOutput" :: value :: tail =>
-                               nextOption(map ++ Map('datasetOutput -> value.toString()), tail)                               
+                               nextOption(map ++ Map('datasetOutput -> value.toString()), tail)
+        case "--benchmarkOutput" :: value :: tail =>
+                               nextOption(map ++ Map('benchmarkOutput -> value.toString()), tail)                                
         case "--count" :: value :: tail =>
                                nextOption(map ++ Map('count -> value.toBoolean), tail)
         case "--debug" :: value :: tail =>
                                nextOption(map ++ Map('debug -> value.toBoolean), tail)
         case "--createData" :: value :: tail =>
-                               nextOption(map ++ Map('createData -> value.toBoolean), tail)                             
+                               nextOption(map ++ Map('createData -> value.toBoolean), tail)
+        case "--nExecs" :: value :: tail =>
+                               nextOption(map ++ Map('nExecs -> value.toInt), tail)                               
+        case "--writeAll" :: value :: tail =>
+                               nextOption(map ++ Map('writeAll -> value.toBoolean), tail)                                   
         case "--partitions" :: value :: tail =>
                                nextOption(map ++ Map('partitions -> value.toInt), tail)
         case "--cores" :: value :: tail =>
@@ -188,6 +191,9 @@ options:
     if (options.get('n).isDefined)
       n = options.get('n).mkString.toInt
       
+    if (options.get('nExecs).isDefined)
+      nExecs = options.get('nExecs).mkString.toInt      
+      
     if (options.get('threshold).isDefined)
       normThreshold = options.get('threshold).mkString.toDouble
       
@@ -205,6 +211,9 @@ options:
     
     if (options.get('count).isDefined)
       COUNT = options.get('count).mkString.toBoolean
+      
+    if (options.get('writeAll).isDefined)
+      writeAll = options.get('writeAll).mkString.toBoolean      
 
     if (options.get('debug).isDefined)
       DEBUG = options.get('debug).mkString.toBoolean
@@ -220,6 +229,9 @@ options:
 
     if (options.get('output).isDefined)
       output = options.get('output).mkString
+
+    if (options.get('benchmarkOutput).isDefined)
+      benchmarkOutput = options.get('benchmarkOutput).mkString
       
     if (options.get('masterIp).isDefined)
       masterIp = options.get('masterIp).mkString      

@@ -1,0 +1,1 @@
+./spark-submit --class benchmark.Benchmark ~/Desktop/test.jar --input ~/Desktop/dataset1.txt --writeAll true --nExecs 3 --output ~/Desktop/Outputs --benchmarkOutput ~/Desktop/dataset1_benchmark.txt

@@ -56,8 +56,7 @@ object Benchmark {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-    
-    var nExecs = Args.nExecs
+
     var writeAll = Args.writeAll
 
     // Initialize spark and so on to do not influence in the final execution time
@@ -81,19 +80,19 @@ object Benchmark {
     
     if (Args.BENCHMARK) {
      
-      val file = new File(Args.benchmarkPath)
+      val file = new File(Args.benchmarkOutput)
       val fw = new FileWriter(file, true)
       val bw = new BufferedWriter(fw)
       
       bw.append("\n\n###############################################\n")    
-      bw.append("# Benchmarking config: " + Args.benchmarkPath + "\n")
+      bw.append("# Benchmarking config: " + Args.benchmarkOutput + "\n")
       bw.append("###############################################\n\n")
       bw.flush()      
       
       if (Args.ELEMENTSPLIT) {
         bw.append("###Element Split:\n")
         try {
-          execTimeAvg(algorithms.ElementSplit.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
@@ -105,7 +104,7 @@ object Benchmark {
       if (Args.BRUTEFORCE) {
         bw.append("###Brute Force:\n")
         try {
-          execTimeAvg(algorithms.BruteForce.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
@@ -117,7 +116,7 @@ object Benchmark {
       if (Args.INVIDXPREFETCH) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
         try {
-          execTimeAvg(algorithms.InvIdxFetchPreFilt.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.InvIdxFetchPreFilt.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
@@ -129,7 +128,7 @@ object Benchmark {
       if (Args.INVIDXPRE) {
         bw.append("###Inverted Index Prefix Filtering:\n")
         try {
-          execTimeAvg(algorithms.InvIdxPreFilt.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
@@ -141,7 +140,7 @@ object Benchmark {
       if (Args.INVIDXFETCH) {
         bw.append("###Inverted Index Fetching IDs:\n")
         try {
-          execTimeAvg(algorithms.InvIdxFetch.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
@@ -153,7 +152,7 @@ object Benchmark {
       if (Args.INVIDX) {
         bw.append("###Inverted Index:\n")
         try {
-          execTimeAvg(algorithms.InvIdx.main(args), nExecs, bw, writeAll)
+          execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, bw, writeAll)
         } catch {
           case e:
             Exception => bw.append(e.toString() + "\n\n")
