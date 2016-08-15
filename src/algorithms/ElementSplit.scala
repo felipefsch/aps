@@ -63,15 +63,7 @@ object ElementSplit {
       var input = Args.input    
       var output = Args.output + "ElementSplit"
       var master = Args.masterIp
-      var k = Args.k
-      var storeCount = Args.COUNT      
-      
-      val minOverlap = Footrule.getMinOverlap(k, normThreshold)
-      val threshold = Footrule.denormalizeThreshold(k, normThreshold)
-      
-      if (DEBUG) {
-        println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
-      }
+      var storeCount = Args.COUNT
       
       val conf = new SparkConf()
               .setMaster(master)
@@ -83,7 +75,15 @@ object ElementSplit {
       val sc = new SparkContext(conf)
       
       try {
+        // Load also sets ranking size k 
         val ranks = Load.spaceSeparated(input, sc, Args.partitions)
+
+        val minOverlap = Footrule.getMinOverlap(Args.k, normThreshold)
+        val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)
+        
+        if (DEBUG) {
+          println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
+        }        
   
         // Create (Element, Pos, ID)
         val triples = ranks.flatMap(x => emitElementRankId(x))
@@ -104,7 +104,7 @@ object ElementSplit {
                                                  .filter(x => x != ())
         
         // Compute final distance and filter on threshold
-        val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, k))
+        val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, Args.k))
                                             .filter(x => x._2 <= threshold)
                                    
         // Saving output locally on each node

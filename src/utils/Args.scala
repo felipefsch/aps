@@ -76,6 +76,14 @@ options:
   """
   
   /**
+   * Set ranking size K. Used for automatically know its size, no
+   * need to give it as argument or know it in advance.
+   */
+  def setK (k: Int) {
+    this.k = k
+  }
+  
+  /**
    * This object parses all possible parameters to all algorithms
    * including parsing configuration XML file. Parsed arguments are
    * accessible through global variables defined on the top of this

@@ -33,7 +33,8 @@ object Load {
      * Output:
      * -RDD[(RankingID, [Element1, Element2,...])]
      * 
-     * Load space separated ranking with ID as first element
+     * Load space separated ranking with ID as first element. It also sets
+     * size of ranking K in order to prevent wrong input parameters usage or similar
      */
     def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
     : RDD[(Long, Array[Long])] = {
@@ -43,6 +44,9 @@ object Load {
       
       // Split elements
       val ranks = file.map(a => a.split(" ").map(_.toLong))
+      
+      // Set ranking size
+      Args.setK(ranks.first().size - 1)
       
       // Convert array into tuple of array elements and rank id
       val rankIdTuples = ranks.map(x => arrayToTuple(x))

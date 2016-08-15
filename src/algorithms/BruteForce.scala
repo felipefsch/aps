@@ -22,11 +22,7 @@ object BruteForce {
     var output = Args.output + "BruteForce"
     
     var master = Args.masterIp
-    var k = Args.k
     var storeCount = Args.COUNT
-    
-    // Denormalize threshold
-    val threshold = Footrule.denormalizeThreshold(k, normThreshold)
     
     val conf = new SparkConf()
               .setMaster(master)
@@ -38,7 +34,11 @@ object BruteForce {
     val sc = new SparkContext(conf)
     
     try {
+      // Load also sets ranking size k      
       val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
+    
+      // Denormalize threshold
+      val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)      
   
       // Cartesian product
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)

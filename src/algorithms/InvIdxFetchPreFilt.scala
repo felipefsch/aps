@@ -11,9 +11,6 @@ import scala.xml.XML
 import utils._
 
 object InvIdxFetchPreFilt {
-
-  var k:Long = 0
-  var threshold:Long = 0
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
@@ -21,11 +18,8 @@ object InvIdxFetchPreFilt {
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxFetchPreFilt"
-    var master = Args.masterIp    
-    k = Args.k
-    var storeCount = Args.COUNT    
-    
-    threshold = Footrule.denormalizeThreshold(k, normThreshold)
+    var master = Args.masterIp
+    var storeCount = Args.COUNT
     
     val conf = new SparkConf()
               .setMaster(master)
@@ -36,10 +30,12 @@ object InvIdxFetchPreFilt {
     
     val sc = new SparkContext(conf)
     try {  
-      // Partition ranks
+      // Load also sets ranking size k
       val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)
+    
+      val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)      
            
-      var prefixSize = k - Footrule.getMinOverlap(k, threshold) 
+      var prefixSize = Args.k - Footrule.getMinOverlap(Args.k, threshold) 
       
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, prefixSize.toInt)
       

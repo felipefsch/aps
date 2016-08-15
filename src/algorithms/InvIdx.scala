@@ -19,10 +19,8 @@ object InvIdx {
     var input = Args.input    
     var output = Args.output + "InvIdx"
     var master = Args.masterIp    
-    var k = Args.k
+    //var k = Args.k
     var storeCount = Args.COUNT    
-    
-    val threshold = Footrule.denormalizeThreshold(k, normThreshold)
     
     val conf = new SparkConf()
               .setMaster(master)
@@ -33,10 +31,12 @@ object InvIdx {
     
     val sc = new SparkContext(conf)
     try {  
-      // Partition ranks
+      // Load also sets ranking size k
       val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
+    
+      val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)      
       
-      val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, k)
+      val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, Args.k)
       
       val distinctCandidates = InvertedIndex.getCandidates(invertedIndex)
 
