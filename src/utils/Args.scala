@@ -141,7 +141,9 @@ options:
         case "--benchmark" :: value :: tail =>
                                nextOption(map ++ Map('benchmark -> value.toBoolean), tail)  
         case "--init" :: value :: tail =>
-                               nextOption(map ++ Map('init -> value.toBoolean), tail)  
+                               nextOption(map ++ Map('init -> value.toBoolean), tail)
+        case "--bruteforce" :: value :: tail =>
+                               nextOption(map ++ Map('bruteforce -> value.toBoolean), tail)                               
         case "--invidx" :: value :: tail =>
                                nextOption(map ++ Map('invidx -> value.toBoolean), tail)
         case "--invidxpre" :: value :: tail =>
