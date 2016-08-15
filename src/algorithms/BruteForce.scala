@@ -6,6 +6,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import scala.xml.XML
 import utils._
+import benchmark.Benchmark
 
 /**
  * Brute Force algorithm:
@@ -17,6 +18,7 @@ object BruteForce {
   def main(args: Array[String]): Unit = {
     Args.parse(args)
     
+    var begin, end = 0.toLong
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "BruteForce"
@@ -34,24 +36,38 @@ object BruteForce {
     val sc = new SparkContext(conf)
     
     try {
-      // Load also sets ranking size k      
+      // Load also sets ranking size k  
+      begin = System.nanoTime()
       val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
-    
-      // Denormalize threshold
-      val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)      
+      end = System.nanoTime()
+      Benchmark.stageTime("load data", begin, end)         
   
       // Cartesian product
+      begin = System.nanoTime()
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)
+      end = System.nanoTime()
+      Benchmark.stageTime("cartesian product", begin, end)      
       
+      begin = System.nanoTime()
       val allDistances = cartesianRanks.map(x => Footrule.onLeftIdIndexedArray(x))
+      end = System.nanoTime()
+      Benchmark.stageTime("compute distances", begin, end)      
       
       //Filter with threshold, keep equal elements
-      val similarRanks = allDistances.filter(x => x._2 <= threshold)
+      begin = System.nanoTime()
+      val similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
+      end = System.nanoTime()
+      Benchmark.stageTime("filter on threshold", begin, end)      
 
-      if (storeCount)
+      begin = System.nanoTime()
+      if (storeCount) {
         Store.rddToLocalAndCount(output, similarRanks)
-      else
+      }
+      else {
         Store.rddToLocalMachine(output, similarRanks)
+      }
+      end = System.nanoTime()
+      Benchmark.stageTime("store results", begin, end)
       
     } finally {
       // Force stopping Spark Context before exiting the algorithm 

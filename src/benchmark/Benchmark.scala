@@ -10,6 +10,14 @@ import scala.util.control.NonFatal
  */
 object Benchmark {
   
+  var bw = new BufferedWriter(new FileWriter(new File("")))
+  
+  def stageTime( stage: String, begin: Long, end: Long) {
+    var execTime = end - begin
+    if (Args.PROFILING)
+      bw.append("Execution of " + stage + ": " + execTime.toString() + "ns")
+  }
+  
   /**
    * Get execution time of block in nanoseconds
    */
@@ -56,8 +64,12 @@ object Benchmark {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
+     
+    // Set file writer
+    val file = new File(Args.benchmarkOutput)
+    bw = new BufferedWriter(new FileWriter(file, true))    
 
-    var writeAll = Args.writeAll
+    var writeAll = Args.WRITEALL
 
     // Initialize spark and so on to do not influence in the final execution time
     if (Args.INIT) {
@@ -79,11 +91,6 @@ object Benchmark {
     }
     
     if (Args.BENCHMARK) {
-     
-      val file = new File(Args.benchmarkOutput)
-      val fw = new FileWriter(file, true)
-      val bw = new BufferedWriter(fw)
-      
       bw.append("\n\n###############################################\n")    
       bw.append("# Benchmarking config: " + Args.benchmarkOutput + "\n")
       bw.append("###############################################\n\n")

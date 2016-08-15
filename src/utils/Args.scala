@@ -4,11 +4,11 @@ import scala.xml.XML
 
 object Args {
   var DEBUG = false
+  var PROFILING = false
   var COUNT = false
   var CREATEDATA = false
   
-  var writeAll = true
-  var nExecs = 2
+  var WRITEALL = true
   var INIT = true
   var BRUTEFORCE = true
   var ELEMENTSPLIT = true
@@ -19,12 +19,15 @@ object Args {
   var BENCHMARK = true
   var benchmarkOutput = ""
   
+  var nExecs = 2  
   var configFilePath = ""
   var k = 0
   var n = 0
   var distinctElements = 0
   var dataSetPath = ""
+  var threshold = 0.toLong
   var normThreshold = 0.0
+  var minOverlap = 0.toLong
   var nPools = 0
   var selectivity = 0.0
   var poolIntersection = 0.0
@@ -58,6 +61,7 @@ options:
    --benchmarkOutput  PATH : benchmarking results output path
    --count            BOOL : count number of result pairs
    --debug            BOOL : debug mode
+   --profiling        BOOL : profiling mode
    --createData       BOOL : create synthetic dataset
    --partitions       N    : number of partitions for repartitioning
    --cores            N    : number of cores to use on local machine
@@ -81,6 +85,10 @@ options:
    */
   def setK (k: Int) {
     this.k = k
+    // Update denormalized threshold
+    this.threshold = Footrule.denormalizeThreshold(k, normThreshold)
+    // Update minimum overlap between ranks
+    this.minOverlap = Footrule.getMinOverlap(k, normThreshold)
   }
   
   /**
@@ -132,6 +140,8 @@ options:
                                nextOption(map ++ Map('count -> value.toBoolean), tail)
         case "--debug" :: value :: tail =>
                                nextOption(map ++ Map('debug -> value.toBoolean), tail)
+        case "--profiling" :: value :: tail =>
+                               nextOption(map ++ Map('profiling -> value.toBoolean), tail)                               
         case "--createData" :: value :: tail =>
                                nextOption(map ++ Map('createData -> value.toBoolean), tail)
         case "--nExecs" :: value :: tail =>
@@ -204,8 +214,11 @@ options:
     if (options.get('nExecs).isDefined)
       nExecs = options.get('nExecs).mkString.toInt      
       
-    if (options.get('threshold).isDefined)
+    if (options.get('threshold).isDefined) {
       normThreshold = options.get('threshold).mkString.toDouble
+      threshold = Footrule.denormalizeThreshold(k, normThreshold)
+      minOverlap = Footrule.getMinOverlap(Args.k, normThreshold)
+    }
       
     if (options.get('selectivity).isDefined)
       selectivity = options.get('selectivity).mkString.toDouble
@@ -223,11 +236,14 @@ options:
       COUNT = options.get('count).mkString.toBoolean
       
     if (options.get('writeAll).isDefined)
-      writeAll = options.get('writeAll).mkString.toBoolean      
+      WRITEALL = options.get('writeAll).mkString.toBoolean      
 
     if (options.get('debug).isDefined)
       DEBUG = options.get('debug).mkString.toBoolean
-    
+
+    if (options.get('profiling).isDefined)
+      PROFILING = options.get('profiling).mkString.toBoolean
+      
     if (options.get('createData).isDefined)
       CREATEDATA = options.get('createData).mkString.toBoolean
       

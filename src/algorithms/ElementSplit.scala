@@ -10,6 +10,8 @@ import utils._
 import org.apache.spark.rdd.RDD
 import scala.collection.immutable.IndexedSeq
 
+import benchmark.Benchmark
+
 /**
  * Element Split algorithm:
  * -distribution based on ranking elements
@@ -18,8 +20,6 @@ import scala.collection.immutable.IndexedSeq
  * --prediction of non overlapping elements distance
  */
 object ElementSplit {
-  
-    private def DEBUG = false
   
     /**
      * Input:
@@ -59,6 +59,8 @@ object ElementSplit {
     def main(args: Array[String]): Unit = {
       Args.parse(args)
      
+      // For profiling
+      var begin, end = 0.toLong
       var normThreshold = Args.normThreshold
       var input = Args.input    
       var output = Args.output + "ElementSplit"
@@ -75,43 +77,66 @@ object ElementSplit {
       val sc = new SparkContext(conf)
       
       try {
-        // Load also sets ranking size k 
+        // Load also sets ranking size k
+        begin = System.nanoTime()
         val ranks = Load.spaceSeparated(input, sc, Args.partitions)
-
-        val minOverlap = Footrule.getMinOverlap(Args.k, normThreshold)
-        val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)
+        end = System.nanoTime()
+        Benchmark.stageTime("load data", begin, end)
         
-        if (DEBUG) {
-          println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
+        if (Args.DEBUG) {
+          println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
         }        
   
         // Create (Element, Pos, ID)
+        begin = System.nanoTime()        
         val triples = ranks.flatMap(x => emitElementRankId(x))
+        end = System.nanoTime()
+        Benchmark.stageTime("create triples", begin, end)
         
         // Group on elements (Element, [Element, Pos, ID]*)
         // and remove element to get [Element, Pos, ID]*
+        begin = System.nanoTime()        
         val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
+        end = System.nanoTime()
+        Benchmark.stageTime("group on element", begin, end)
         
         // Possible candidate pair for each element
+        begin = System.nanoTime()        
         val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
+        end = System.nanoTime()
+        Benchmark.stageTime("create pairs", begin, end)
         
         // Group elements for all created candidates
+        begin = System.nanoTime()        
         val groupOnCandidates = candidates.groupByKey()
+        end = System.nanoTime()
+        Benchmark.stageTime("group elements of pair", begin, end)        
         
         // Filter empty candidates and those without minimum
         // overlap,since we know threshold can not be reached
-        val filteredOnOverlap = groupOnCandidates.map(x => if (x._2.size >= minOverlap.toInt) x)
+        begin = System.nanoTime()        
+        val filteredOnOverlap = groupOnCandidates.map(x => if (x._2.size >= Args.minOverlap.toInt) x)
                                                  .filter(x => x != ())
+        end = System.nanoTime()
+        Benchmark.stageTime("filter on overlap", begin, end)                                                 
         
         // Compute final distance and filter on threshold
-        val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, Args.k))
-                                            .filter(x => x._2 <= threshold)
+        begin = System.nanoTime()        
+        val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
+                                            .filter(x => x._2 <= Args.threshold)
+        end = System.nanoTime()
+        Benchmark.stageTime("compute final distance and filter", begin, end)                                            
                                    
         // Saving output locally on each node
-        if (storeCount)
+        begin = System.nanoTime()        
+        if (storeCount) {
           Store.rddToLocalAndCount(output, similarRanks)
-        else
+        }
+        else {
           Store.rddToLocalMachine(output, similarRanks)
+        }
+        end = System.nanoTime()
+        Benchmark.stageTime("store results", begin, end)           
         
       } finally {
         sc.stop()

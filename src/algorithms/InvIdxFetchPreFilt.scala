@@ -9,12 +9,14 @@ import scala.collection.immutable.IndexedSeq
 import scala.xml.XML
 
 import utils._
+import benchmark.Benchmark
 
 object InvIdxFetchPreFilt {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
  
+    var begin, end = 0.toLong
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxFetchPreFilt"
@@ -31,32 +33,53 @@ object InvIdxFetchPreFilt {
     val sc = new SparkContext(conf)
     try {  
       // Load also sets ranking size k
-      val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)
-    
-      val threshold = Footrule.denormalizeThreshold(Args.k, normThreshold)      
+      begin = System.nanoTime()
+      val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)   
+      end = System.nanoTime()
+      Benchmark.stageTime("load data", begin, end)      
            
-      var prefixSize = Args.k - Footrule.getMinOverlap(Args.k, threshold) 
-      
+      var prefixSize = Args.k - Footrule.getMinOverlap(Args.k, Args.threshold) 
+            
+      end = System.nanoTime()
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, prefixSize.toInt)
+      end = System.nanoTime()
+      Benchmark.stageTime("store results", begin, end)      
       
-      val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)  
+      begin = System.nanoTime()
+      val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)
+      end = System.nanoTime()
+      Benchmark.stageTime("get candidates", begin, end)      
 
       // Join on rankId1 and transform output to (rankId2, (rankId1, (elements1))
-      val firstJoin = ranksArray.join(distinctCandidates).map(x => (x._2._2, (x._1, x._2._1)))
-      
+      begin = System.nanoTime()
+      val firstJoin = ranksArray.join(distinctCandidates).map(x => (x._2._2, (x._1, x._2._1)))      
       // Join on rankId2 and transform output to ((rankId1, elements1), (rankId2, elements2)) 
-      val secondJoin = ranksArray.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))      
+      val secondJoin = ranksArray.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))   
+      end = System.nanoTime()
+      Benchmark.stageTime("fetch raking from IDs", begin, end)      
       
+      begin = System.nanoTime()
       val allDistances = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))
+      end = System.nanoTime()
+      Benchmark.stageTime("compute distances", begin, end)      
       
       // Move distinct() to previous lines to avoid unnecessary computation
-      val similarRanks = allDistances.filter(x => x._2 <= threshold).distinct()
+      begin = System.nanoTime()
+      val similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
+      end = System.nanoTime()
+      Benchmark.stageTime("filter on threshold", begin, end)      
       
-      if (storeCount)
+      // Saving output locally on each node
+      begin = System.nanoTime()        
+      if (storeCount) {
         Store.rddToLocalAndCount(output, similarRanks)
-      else
+      }
+      else {
         Store.rddToLocalMachine(output, similarRanks)
-      
+      }
+      end = System.nanoTime()
+      Benchmark.stageTime("store results", begin, end)
+
     } finally {
       sc.stop()
     }
