@@ -19,8 +19,7 @@ object Args {
   var BENCHMARK = true
   var benchmarkOutput = ""
   
-  var nExecs = 2  
-  var configFilePath = ""
+  var nExecs = 2
   var k = 0
   var n = 0
   var distinctElements = 0

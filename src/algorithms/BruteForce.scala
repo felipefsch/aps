@@ -6,7 +6,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import scala.xml.XML
 import utils._
-import benchmark.Benchmark
+import benchmark.Profiling
 
 /**
  * Brute Force algorithm:
@@ -40,34 +40,29 @@ object BruteForce {
       begin = System.nanoTime()
       val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
       end = System.nanoTime()
-      Benchmark.stageTime("load data", begin, end)         
+      Profiling.stageTime("load data", begin, end)         
   
       // Cartesian product
       begin = System.nanoTime()
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)
       end = System.nanoTime()
-      Benchmark.stageTime("cartesian product", begin, end)      
+      Profiling.stageTime("cartesian product", begin, end)      
       
       begin = System.nanoTime()
       val allDistances = cartesianRanks.map(x => Footrule.onLeftIdIndexedArray(x))
       end = System.nanoTime()
-      Benchmark.stageTime("compute distances", begin, end)      
+      Profiling.stageTime("compute distances", begin, end)      
       
       //Filter with threshold, keep equal elements
       begin = System.nanoTime()
       val similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
       end = System.nanoTime()
-      Benchmark.stageTime("filter on threshold", begin, end)      
+      Profiling.stageTime("filter on threshold", begin, end)      
 
       begin = System.nanoTime()
-      if (storeCount) {
-        Store.rddToLocalAndCount(output, similarRanks)
-      }
-      else {
-        Store.rddToLocalMachine(output, similarRanks)
-      }
+      Store.storeRdd(output, similarRanks, Args.COUNT)
       end = System.nanoTime()
-      Benchmark.stageTime("store results", begin, end)
+      Profiling.stageTime("store results", begin, end)
       
     } finally {
       // Force stopping Spark Context before exiting the algorithm 

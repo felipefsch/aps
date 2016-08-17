@@ -9,7 +9,7 @@ import scala.collection.immutable.IndexedSeq
 import scala.xml.XML
 
 import utils._
-import benchmark.Benchmark
+import benchmark.Profiling
 
 object InvIdxFetch {
   
@@ -20,8 +20,7 @@ object InvIdxFetch {
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxFetch"
-    var master = Args.masterIp    
-    var storeCount = Args.COUNT    
+    var master = Args.masterIp     
     
     val conf = new SparkConf()
               .setMaster(master)
@@ -36,18 +35,18 @@ object InvIdxFetch {
       begin = System.nanoTime()
       val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)
       end = System.nanoTime()
-      Benchmark.stageTime("load data", begin, end)       
+      Profiling.stageTime("load data", begin, end)       
       
       begin = System.nanoTime()
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, Args.k)      
       val flatInvIdx = invertedIndex.flatMap(x => x._2)
       end = System.nanoTime()
-      Benchmark.stageTime("create inverted index", begin, end) 
+      Profiling.stageTime("create inverted index", begin, end) 
       
       begin = System.nanoTime()
       val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)  
       end = System.nanoTime()
-      Benchmark.stageTime("get candidates", begin, end)       
+      Profiling.stageTime("get candidates", begin, end)       
   
       // Join on rankId1 and transform output to (rankId2, (rankId1, (elements1))
       begin = System.nanoTime()
@@ -55,26 +54,21 @@ object InvIdxFetch {
       // Join on rankId2 and transform output to ((rankId1, elements1), (rankId2, elements2)) 
       val secondJoin = ranksArray.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))
       end = System.nanoTime()
-      Benchmark.stageTime("fetch ranking of IDs", begin, end) 
+      Profiling.stageTime("fetch ranking of IDs", begin, end) 
   
       begin = System.nanoTime()
       val allDistances = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))
       end = System.nanoTime()
-      Benchmark.stageTime("comput distances", begin, end) 
+      Profiling.stageTime("comput distances", begin, end) 
       
       val similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
       end = System.nanoTime()
-      Benchmark.stageTime("filter on threshold", begin, end) 
+      Profiling.stageTime("filter on threshold", begin, end) 
       
       begin = System.nanoTime()      
-      if (storeCount) {
-        Store.rddToLocalAndCount(output, similarRanks)
-      }
-      else {
-        Store.rddToLocalMachine(output, similarRanks)
-      }
+      Store.storeRdd(output, similarRanks, Args.COUNT)
       end = System.nanoTime()
-      Benchmark.stageTime("store results", begin, end)  
+      Profiling.stageTime("store results", begin, end)  
       
     } finally {
       sc.stop()

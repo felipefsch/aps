@@ -19,10 +19,28 @@ object Store {
    * Input:
    * -path: folder path where to store number of elements
    * -rdd: the RDD with the local results
+   * -count: count number of elements 
+   * 
+   * Store RDD to defined path and count its elements if flag set to true
+   */
+  def storeRdd[T]( path: String, rdd: RDD[T], count: Boolean) : Unit = {
+    if (count) {
+      rddToLocalAndCount(path, rdd)
+    }
+    else {
+      rddToLocalMachine(path, rdd)
+    }
+      
+  }
+  
+  /**
+   * Input:
+   * -path: folder path where to store number of elements
+   * -rdd: the RDD with the local results
    * 
    * Store RDD and count its elements
    */
-  def rddToLocalAndCount[T]( path: String, rdd: RDD[T] ) : Unit = {
+  private def rddToLocalAndCount[T]( path: String, rdd: RDD[T] ) : Unit = {
     rddToLocalMachine(path, rdd)
     count(path, rdd)
   }
@@ -35,7 +53,7 @@ object Store {
    * This stores file "count.txt" under the specified folder
    * with the number of elements on the provided RDD
    */
-  def count[T]( path: String, rdd: RDD[T] ) : Unit = {
+  private def count[T]( path: String, rdd: RDD[T] ) : Unit = {
     
     var countPath = ""
     if (path.last.compare('/') == 0)
@@ -65,7 +83,7 @@ object Store {
    * This stores files as part-0000... under the specified folder
    * where each line represent one RDD element
    */
-  def rddToLocalMachine[T]( path: String, rdd: RDD[T] ) : Unit = {
+  private def rddToLocalMachine[T]( path: String, rdd: RDD[T] ) : Unit = {
       try {
         if (new File(path).exists()) {
           FileUtils.deleteDirectory(new File(path)); 

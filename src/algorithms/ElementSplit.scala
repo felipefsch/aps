@@ -10,7 +10,7 @@ import utils._
 import org.apache.spark.rdd.RDD
 import scala.collection.immutable.IndexedSeq
 
-import benchmark.Benchmark
+import benchmark.Profiling
 
 /**
  * Element Split algorithm:
@@ -65,7 +65,6 @@ object ElementSplit {
       var input = Args.input    
       var output = Args.output + "ElementSplit"
       var master = Args.masterIp
-      var storeCount = Args.COUNT
       
       val conf = new SparkConf()
               .setMaster(master)
@@ -81,7 +80,7 @@ object ElementSplit {
         begin = System.nanoTime()
         val ranks = Load.spaceSeparated(input, sc, Args.partitions)
         end = System.nanoTime()
-        Benchmark.stageTime("load data", begin, end)
+        Profiling.stageTime("load data", begin, end)
         
         if (Args.DEBUG) {
           println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
@@ -91,26 +90,26 @@ object ElementSplit {
         begin = System.nanoTime()        
         val triples = ranks.flatMap(x => emitElementRankId(x))
         end = System.nanoTime()
-        Benchmark.stageTime("create triples", begin, end)
+        Profiling.stageTime("create triples", begin, end)
         
         // Group on elements (Element, [Element, Pos, ID]*)
         // and remove element to get [Element, Pos, ID]*
         begin = System.nanoTime()        
         val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
         end = System.nanoTime()
-        Benchmark.stageTime("group on element", begin, end)
+        Profiling.stageTime("group on element", begin, end)
         
         // Possible candidate pair for each element
         begin = System.nanoTime()        
         val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
         end = System.nanoTime()
-        Benchmark.stageTime("create pairs", begin, end)
+        Profiling.stageTime("create pairs", begin, end)
         
         // Group elements for all created candidates
         begin = System.nanoTime()        
         val groupOnCandidates = candidates.groupByKey()
         end = System.nanoTime()
-        Benchmark.stageTime("group elements of pair", begin, end)        
+        Profiling.stageTime("group elements of pair", begin, end)        
         
         // Filter empty candidates and those without minimum
         // overlap,since we know threshold can not be reached
@@ -118,25 +117,20 @@ object ElementSplit {
         val filteredOnOverlap = groupOnCandidates.map(x => if (x._2.size >= Args.minOverlap.toInt) x)
                                                  .filter(x => x != ())
         end = System.nanoTime()
-        Benchmark.stageTime("filter on overlap", begin, end)                                                 
+        Profiling.stageTime("filter on overlap", begin, end)                                                 
         
         // Compute final distance and filter on threshold
         begin = System.nanoTime()        
         val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
                                             .filter(x => x._2 <= Args.threshold)
         end = System.nanoTime()
-        Benchmark.stageTime("compute final distance and filter", begin, end)                                            
+        Profiling.stageTime("compute final distance and filter", begin, end)                                            
                                    
         // Saving output locally on each node
         begin = System.nanoTime()        
-        if (storeCount) {
-          Store.rddToLocalAndCount(output, similarRanks)
-        }
-        else {
-          Store.rddToLocalMachine(output, similarRanks)
-        }
+        Store.storeRdd(output, similarRanks, Args.COUNT)
         end = System.nanoTime()
-        Benchmark.stageTime("store results", begin, end)           
+        Profiling.stageTime("store results", begin, end)           
         
       } finally {
         sc.stop()

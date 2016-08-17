@@ -9,7 +9,7 @@ import scala.collection.immutable.IndexedSeq
 import scala.xml.XML
 
 import utils._
-import benchmark.Benchmark
+import benchmark.Profiling
 
 object InvIdxPreFilt {
    
@@ -20,8 +20,7 @@ object InvIdxPreFilt {
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxPreFilt"
-    var master = Args.masterIp    
-    var storeCount = Args.COUNT    
+    var master = Args.masterIp
     
     val conf = new SparkConf().setMaster(master)
               .setMaster(master)
@@ -36,41 +35,36 @@ object InvIdxPreFilt {
       begin = System.nanoTime()
       val ranksArray =  Load.spaceSeparated(input, sc, Args.partitions)
       end = System.nanoTime()
-      Benchmark.stageTime("load data", begin, end)        
+      Profiling.stageTime("load data", begin, end)        
 
       var prefixSize = Args.k - Footrule.getMinOverlap(Args.k, Args.threshold)
       
       begin = System.nanoTime() 
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, prefixSize.toInt)
       end = System.nanoTime()
-      Benchmark.stageTime("create inverted index", begin, end)        
+      Profiling.stageTime("create inverted index", begin, end)        
       
       begin = System.nanoTime() 
       val distinctCandidates = InvertedIndex.getCandidates(invertedIndex)
       end = System.nanoTime()
-      Benchmark.stageTime("get candidates", begin, end)        
+      Profiling.stageTime("get candidates", begin, end)        
       
       begin = System.nanoTime() 
       val allDistances = distinctCandidates.map(x => Footrule.onLeftIdIndexedArray(x))
       end = System.nanoTime()
-      Benchmark.stageTime("compute distances", begin, end)        
+      Profiling.stageTime("compute distances", begin, end)        
       
       // Move distinct() to previous lines to avoid unnecessary computation
       begin = System.nanoTime() 
       val similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
       end = System.nanoTime()
-      Benchmark.stageTime("filter on threshold", begin, end)        
+      Profiling.stageTime("filter on threshold", begin, end)        
       
       // Saving output locally on each node
       begin = System.nanoTime()        
-      if (storeCount) {
-        Store.rddToLocalAndCount(output, similarRanks)
-      }
-      else {
-        Store.rddToLocalMachine(output, similarRanks)
-      }
+      Store.storeRdd(output, similarRanks, Args.COUNT)
       end = System.nanoTime()
-      Benchmark.stageTime("store results", begin, end)     
+      Profiling.stageTime("store results", begin, end)     
       
     } finally {
       sc.stop()
