@@ -2,6 +2,7 @@ package utils
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import scala.io.Source
 
 /**
  * Data Loading method.
@@ -52,5 +53,54 @@ object Load {
       val rankIdTuples = ranks.map(x => arrayToTuple(x))
 
       return rankIdTuples
+    }
+    
+    /**
+     * Input:
+     * -path: the path to the input data set
+     * -sc: the spark context
+     * 
+     * Output:
+     * -RDD[(RankingID, [Element1, Element2,...])]
+     * 
+     * Load colon separated ranking and create unique IDs for the
+     * loaded rankings.
+     * 
+     * ATENTION! - Ranking size MUST be provided in advance, since inputs
+     * might have not uniform sizes
+     */    
+    def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
+    : RDD[(Long, Array[Long])] = {
+      // File reading
+      val file = sc.textFile(path).repartition(partitions)
+
+      val ranks = file.map(a => 
+                           a.substring(a.lastIndexOf("\t") + 1, a.length())
+                            .split(":")
+                            .slice(0, Args.k)
+                            .map(_.toLong)
+                           )
+                           
+      val filterSmall = ranks.filter(x => x.size == Args.k)
+
+      val ranksWithId = filterSmall.zipWithUniqueId().map(x => (x._2, x._1))      
+      
+      return ranksWithId
+    }
+    
+    def loadData( path: String, sc: SparkContext, partitions: Int ) 
+    : RDD[(Long, Array[Long])] = {            
+      // Analyze the first line of the input to check its format
+      val src = Source.fromFile(path)
+      val line = src.getLines.take(1).mkString      
+      
+      var commaSeparated = false      
+      if (line.contains(":"))
+        commaSeparated = true
+      
+      if (commaSeparated)
+        return this.colonSeparated(path, sc, partitions)
+      else
+        return this.spaceSeparated(path, sc, partitions)
     }
 }
