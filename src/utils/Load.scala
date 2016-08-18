@@ -37,7 +37,7 @@ object Load {
      * Load space separated ranking with ID as first element. It also sets
      * size of ranking K in order to prevent wrong input parameters usage or similar
      */
-    def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
+    private def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
     : RDD[(Long, Array[Long])] = {
       
       // File reading
@@ -69,11 +69,13 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
+    private def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
     : RDD[(Long, Array[Long])] = {
       // File reading
       val file = sc.textFile(path).repartition(partitions)
 
+      // Split input, removing initial string and
+      // elements as colon separated numbers
       val ranks = file.map(a => 
                            a.substring(a.lastIndexOf("\t") + 1, a.length())
                             .split(":")
@@ -81,9 +83,17 @@ object Load {
                             .map(_.toLong)
                            )
                            
-      val filterSmall = ranks.filter(x => x.size == Args.k)
+      // Filter on ranking size, pruning those that are smaller than desired
+      val filterSize = ranks.filter(x => x.size == Args.k)
+      
+      // Rake only desired amount of entries
+      val filterAmount = filterSize.take(Args.n)
+      
+      // Convert array to RDD
+      val arrayToRdd = sc.parallelize(filterAmount)
 
-      val ranksWithId = filterSmall.zipWithUniqueId().map(x => (x._2, x._1))      
+      // Add unique ID as first element of the tuple
+      val ranksWithId = arrayToRdd.zipWithUniqueId().map(x => (x._2, x._1))      
       
       return ranksWithId
     }

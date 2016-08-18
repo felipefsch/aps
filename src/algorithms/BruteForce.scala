@@ -38,7 +38,7 @@ object BruteForce {
     try {
       // Load also sets ranking size k  
       begin = System.nanoTime()
-      val ranksArray = Load.spaceSeparated(input, sc, Args.partitions)
+      val ranksArray = Load.loadData(input, sc, Args.partitions)
       end = System.nanoTime()
       Profiling.stageTime("load data", begin, end)         
   

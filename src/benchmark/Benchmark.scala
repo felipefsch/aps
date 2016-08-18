@@ -62,7 +62,9 @@ object Benchmark {
           bw.append("[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
           bw.flush()
       }
-      bw.append("AVG Execution time: " + (totalExecTime / nExecs) + " ns\n\n") 
+      bw.append("[BENCHMARK] "          
+          +  "%20d".format(totalExecTime / nExecs)
+          + " ns: AVG Execution time\n\n") 
       bw.flush()
     } catch {
       case e:
@@ -102,7 +104,7 @@ object Benchmark {
       var hour = now.get(Calendar.HOUR)
       var minute = now.get(Calendar.MINUTE)
       var day = now.get(Calendar.DATE)
-      var month = now.get(Calendar.MONTH)
+      var month = now.get(Calendar.MONTH) + 1
       bw.append("\n\n###############################################\n")    
       bw.append("# Benchmarking started at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
@@ -149,7 +151,7 @@ object Benchmark {
       hour = now.get(Calendar.HOUR)
       minute = now.get(Calendar.MINUTE)
       day = now.get(Calendar.DATE)
-      month = now.get(Calendar.MONTH)
+      month = now.get(Calendar.MONTH) + 1
       bw.append("\n\n###############################################\n")    
       bw.append("# Endet at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
