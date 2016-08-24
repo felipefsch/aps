@@ -108,6 +108,10 @@ object Benchmark {
       bw.append("\n\n###############################################\n")    
       bw.append("# Benchmarking started at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
+      bw.append("-k: " + Args.k + "\n")      
+      bw.append("-n: " + Args.n + "\n")
+      bw.append("-threshold: " + Args.normThreshold + "\n")
+      bw.append("-input data: " + Args.input + "\n")
       bw.append("###############################################\n\n")
       bw.flush()      
       
