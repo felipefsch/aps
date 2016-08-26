@@ -17,9 +17,9 @@ object Load {
      * Output:
      * -(RankingID, [Element1, Element2,...])
      */
-    private def arrayToTuple ( in: Array[Long]) : (Long, Array[Long]) = {
+    private def arrayToTuple[T] ( in: Array[T]) : (T, Array[T]) = {
       var rankingID = in(0)
-      var elements = new Array[Long](in.size - 1)
+      var elements = new Array[T](in.size - 1)
       for (i <- 1 until in.size) {
         elements(i -1) = in(i)
       }      
@@ -37,8 +37,8 @@ object Load {
      * Load space separated ranking with ID as first element. It also sets
      * size of ranking K in order to prevent wrong input parameters usage or similar
      */
-    private def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
-    : RDD[(Long, Array[Long])] = {
+    private def spaceSeparated[T] ( path: String, sc: SparkContext, partitions: Int )
+    : RDD[(T, Array[Long])] = {
       
       // File reading
       val file = sc.textFile(path).repartition(partitions)
@@ -69,8 +69,8 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    private def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
-    : RDD[(Long, Array[Long])] = {
+    private def colonSeparated[T] ( path: String, sc: SparkContext, partitions: Int )
+    : RDD[(T, Array[Long])] = {
       // File reading
       val file = sc.textFile(path).repartition(partitions)
 
@@ -100,8 +100,8 @@ object Load {
       return ranksWithId
     }
     
-    def loadData( path: String, sc: SparkContext, partitions: Int ) 
-    : RDD[(Long, Array[Long])] = {            
+    def loadData[T]( path: String, sc: SparkContext, partitions: Int ) 
+    : RDD[(T, Array[Long])] = {            
       // Analyze the first line of the input to check its format
       val src = Source.fromFile(path)
       val line = src.getLines.take(1).mkString      
