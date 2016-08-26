@@ -84,16 +84,18 @@ object Load {
                            )
                            
       // Filter on ranking size, pruning those that are smaller than desired
-      val filterSize = ranks.filter(x => x.size == Args.k)
+      var filtered = ranks.filter(x => x.size == Args.k)
       
-      // Rake only desired amount of entries
-      val filterAmount = filterSize.take(Args.n)
-      
-      // Convert array to RDD
-      val arrayToRdd = sc.parallelize(filterAmount)
+      if (Args.n > 0) {
+        // Take only desired amount of entries
+        val filterAmount = filtered.take(Args.n)
+        
+        // Convert array to RDD
+       filtered = sc.parallelize(filterAmount)
+      }
 
       // Add unique ID as first element of the tuple
-      val ranksWithId = arrayToRdd.zipWithUniqueId().map(x => (x._2, x._1))      
+      val ranksWithId = filtered.zipWithUniqueId().map(x => (x._2, x._1))      
       
       return ranksWithId
     }
