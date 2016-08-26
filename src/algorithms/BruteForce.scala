@@ -38,10 +38,13 @@ object BruteForce {
     try {
       // Load also sets ranking size k  
       begin = System.nanoTime()
-      val ranksArray = Load.loadData(input, sc, Args.partitions)
+      var ranksArray = Load.loadData(input, sc, Args.partitions)
       end = System.nanoTime()
       Profiling.stageTime("load data", begin, end)         
   
+      if (Args.PREGROUP)
+        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)
+      
       // Cartesian product
       begin = System.nanoTime()
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)

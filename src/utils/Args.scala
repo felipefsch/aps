@@ -17,6 +17,9 @@ object Args {
   var INVIDXFETCH = true
   var INVIDXPREFETCH = true
   var BENCHMARK = true
+  
+  var PREGROUP = false
+  
   var benchmarkOutput = ""
   
   var nExecs = 2
@@ -76,6 +79,7 @@ options:
    --invidxfetch      BOOL : run inverted index fetching IDs
    --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
    --benchmark        BOOL : run benchmarking (false dont run any approach)
+   --pregroup         BOOL : group duplicates before checking for similars
   """
   
   /**
@@ -170,7 +174,9 @@ options:
         case "--invidxprefetch" :: value :: tail =>
                                nextOption(map ++ Map('invidxprefetch -> value.toBoolean), tail)  
         case "--elementsplit" :: value :: tail =>
-                               nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)                                 
+                               nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
+        case "--pregroup" :: value :: tail =>
+                               nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)                               
         case option :: tail => println("Unknown option " + option + usage)
                                exit(1) 
       }
@@ -295,7 +301,10 @@ options:
       INVIDXPREFETCH = options.get('invidxprefetch).mkString.toBoolean
 
     if (options.get('elementsplit).isDefined)
-      ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean      
+      ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean
+      
+    if (options.get('groupduplicates).isDefined)
+      PREGROUP = options.get('groupduplicates).mkString.toBoolean      
       
     if (DEBUG) {
       println(options)

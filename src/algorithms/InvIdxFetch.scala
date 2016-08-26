@@ -33,9 +33,12 @@ object InvIdxFetch {
     try {
       // Load also sets ranking size k
       begin = System.nanoTime()
-      val ranksArray =  Load.loadData(input, sc, Args.partitions)
+      var ranksArray =  Load.loadData(input, sc, Args.partitions)
       end = System.nanoTime()
-      Profiling.stageTime("load data", begin, end)       
+      Profiling.stageTime("load data", begin, end) 
+           
+      if (Args.PREGROUP)
+        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)    
       
       begin = System.nanoTime()
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, Args.k)      

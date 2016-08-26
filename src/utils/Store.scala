@@ -15,6 +15,8 @@ import java.io.IOException
  */
 object Store {
   
+  var DELDIR = false
+  
   /**
    * Input:
    * -path: folder path where to store number of elements
@@ -64,8 +66,8 @@ object Store {
     var file = new File(countPath)
       
     try {     
-      val bw = new BufferedWriter(new FileWriter(file))      
-      bw.write(rdd.count().toString())
+      val bw = new BufferedWriter(new FileWriter(file, true))      
+      bw.write(rdd.count().toString() + "\n")
       bw.close()
       
     }
@@ -85,8 +87,9 @@ object Store {
    */
   private def rddToLocalMachine[T]( path: String, rdd: RDD[T] ) : Unit = {
       try {
-        if (new File(path).exists()) {
+        if (new File(path).exists() && !DELDIR) {
           FileUtils.deleteDirectory(new File(path)); 
+          DELDIR = true
         }
         rdd.saveAsTextFile(path)
       }

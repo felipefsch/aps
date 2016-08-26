@@ -78,9 +78,12 @@ object ElementSplit {
       try {
         // Load also sets ranking size k
         begin = System.nanoTime()
-        val ranks = Load.loadData(input, sc, Args.partitions)
+        var ranks = Load.loadData(input, sc, Args.partitions)
         end = System.nanoTime()
         Profiling.stageTime("load data", begin, end)
+        
+        if (Args.PREGROUP)
+          ranks = PreProcessing.groupDuplicatesAndStore(ranks, output)
         
         if (Args.DEBUG) {
           println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)

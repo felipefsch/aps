@@ -99,7 +99,7 @@ object Load {
       return ranksWithId
     }
     
-    def loadData[T1, T2]( path: String, sc: SparkContext, partitions: Int ) 
+    def loadData( path: String, sc: SparkContext, partitions: Int ) 
     : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
       val src = Source.fromFile(path)
