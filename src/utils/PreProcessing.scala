@@ -8,6 +8,11 @@ object PreProcessing {
     return input.split(separator)
   }
   
+  def getDuplicate[T](rdd: RDD[(String, Array[T])])
+  : RDD[((String, String), Long)] = {
+    return rdd.filter(x => x._1.contains(":")).map(x => ((x._1, "duplicates"), 0.toLong))  
+  }
+  
   /**
    * Input:
    * -inputRdd: (RankingID, [Elements])
@@ -24,14 +29,7 @@ object PreProcessing {
     val switched = inputRdd.map(x => (x._2.mkString(":"), x._1.toString()))
     
     // Group on equal arrays, concatenating keys
-    val grouped = switched.reduceByKey((a,b) => (a.concat(":").concat(b)))
-    
-    // Store duplicates!
-    val duplicates = grouped.filter(x => x._2.contains(":")).map(x => (x._2, 0))
-    Store.storeRdd(path, duplicates, Args.COUNT)
-    
-    println("DUPLICATES")
-    duplicates.map(println(_)).collect()
+    val grouped = switched.reduceByKey((a,b) => (a.concat(":").concat(b)))  
     
     // Switch back to original key/value format
     val output = grouped.map(x => (x._2, stringToArray(x._1)))

@@ -41,9 +41,9 @@ object BruteForce {
       var ranksArray = Load.loadData(input, sc, Args.partitions)
       end = System.nanoTime()
       Profiling.stageTime("load data", begin, end)         
-  
+      
       if (Args.PREGROUP)
-        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)
+        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)        
       
       // Cartesian product
       begin = System.nanoTime()
@@ -58,9 +58,14 @@ object BruteForce {
       
       //Filter with threshold, keep equal elements
       begin = System.nanoTime()
-      val similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
+      var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
       end = System.nanoTime()
-      Profiling.stageTime("filter on threshold", begin, end)      
+      Profiling.stageTime("filter on threshold", begin, end)
+      
+      if (Args.PREGROUP) {
+        var duplicates = PreProcessing.getDuplicate(ranksArray)
+        similarRanks = similarRanks.union(duplicates)
+      }
 
       begin = System.nanoTime()
       Store.storeRdd(output, similarRanks, Args.COUNT)
