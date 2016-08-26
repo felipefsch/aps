@@ -29,7 +29,7 @@ object ElementSplit {
      * 
      * For all ranking elements
      */
-    def emitElementRankId( in: (Long, Array[Long])) : IndexedSeq[(Long, Long, Long)] = {
+    def emitElementRankId[T1, T2]( in: (T1, Array[T2])) : IndexedSeq[(T2, Long, T1)] = {
       var array = in._2
       var rankingId = in._1
       
@@ -48,8 +48,8 @@ object ElementSplit {
      * Rank1 = Position of element on ranking ID1
      * Rank2 = Position of element on ranking ID2
      */    
-    def emitCandidatePairs( in: Iterable[(Long, Long, Long)])
-    : Iterable[((Long, Long),(Long, Long, Long))] = {
+    def emitCandidatePairs[T1 <%Ordered[T1], T2]( in: Iterable[(T2, Long, T1)])
+    : Iterable[((T1, T1),(T2, Long, Long))] = {
 
       for (in1 <- in; in2 <- in; if (in1._3 < in2._3)) yield {
           ((in1._3, in2._3),(in1._1, in1._2, in2._2))  

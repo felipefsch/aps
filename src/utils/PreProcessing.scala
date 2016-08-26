@@ -4,15 +4,15 @@ import org.apache.spark.rdd.RDD
 
 object PreProcessing {
   
-  def stringToArray(input: String, separator: String = ":") : Array[Long] = {
-    return input.split(separator).map(x => x.toLong)
+  def stringToArray(input: String, separator: String = ":") : Array[String] = {
+    return input.split(separator)
   }
   
   /**
    * 
    */
-  def groupDuplicates(inputRdd: RDD[(Long, Array[Long])])
-  : RDD[(String, Array[Long])] = {
+  def groupDuplicates[T1, T2](inputRdd: RDD[(T1, Array[T2])])
+  : RDD[(String, Array[String])] = {
     
     // Transform array into string for easier merging
     val switched = inputRdd.map(x => (x._2.mkString(":"), x._1.toString()))

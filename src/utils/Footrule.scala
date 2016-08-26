@@ -57,11 +57,11 @@ object Footrule {
     return dist
   }
   
-  def onLeftIdIndexedArray[T] ( ranks:((T, Array[Long]), (T, Array[Long])))
-  : ((T,T), Long) = {
+  def onLeftIdIndexedArray[T1, T2] ( ranks:((T1, Array[T2]), (T1, Array[T2])))
+  : ((T1,T1), Long) = {
     var footrule:Long = 0;
-    val ranks1:Array[Long] = ranks._1._2
-    val ranks2:Array[Long] = ranks._2._2
+    val ranks1:Array[T2] = ranks._1._2
+    val ranks2:Array[T2] = ranks._2._2
     
     // Both should have same k number of elements
     val k = ranks1.size

@@ -1,6 +1,7 @@
 package utils
 
 import org.apache.spark.rdd.RDD
+import scala.reflect.ClassTag
 
 object InvertedIndex {
   
@@ -14,8 +15,8 @@ object InvertedIndex {
    * Given rank ID and its elements, create tuples as
    * (rank, element(i)) for elements on ranking prefix
    */
-  def arrayToIdElement(in: (Long, Array[Long]), prefixSize: Long)
-  : scala.collection.immutable.IndexedSeq[(Long, (Long, Array[Long]))] = {
+  def arrayToIdElement[T1, T2](in: (T1, Array[T2]), prefixSize: Long)
+  : scala.collection.immutable.IndexedSeq[(T2, (T1, Array[T2]))] = {
     var id = in._1
     var rank = in._2
     var elements = in._2
@@ -33,8 +34,8 @@ object InvertedIndex {
    * 
    * Create inverted index ranking prefix
    */
-  def getInvertedIndex(ranksArray: RDD[(Long, Array[Long])], prefixSize: Int)
-  : RDD[(Long, Iterable[(Long, (Long, Array[Long]))])] = {
+  def getInvertedIndex[T1, T2: ClassTag](ranksArray: RDD[(T1, Array[T2])], prefixSize: Int)
+  : RDD[(T2, Iterable[(T2, (T1, Array[T2]))])] = {
     // Create one tuple for each element
     val tuples = ranksArray.flatMap(x => arrayToIdElement(x, prefixSize))
   
@@ -53,8 +54,8 @@ object InvertedIndex {
    * Output:
    * -(Element, RankingID)
    */
-  def arrayToIdPairs(in: (Long, Array[Long]), prefixSize: Int)
-  : scala.collection.immutable.IndexedSeq[(Long, Long)] = {
+  def arrayToIdPairs[T1, T2](in: (T1, Array[T2]), prefixSize: Int)
+  : scala.collection.immutable.IndexedSeq[(T2, T1)] = {
     var id = in._1
     var elements = in._2
     
@@ -64,11 +65,13 @@ object InvertedIndex {
   }
   
   /**
+   * Input:
+   * -[(ID, [Elements]*)]* 
    * Output:
    * -(Element, [Element, RankingID])
    */
-  def getInvertedIndexIDs(ranksArray: RDD[(Long, Array[Long])], prefixSize: Int)
-  : RDD[(Long, Iterable[(Long,Long)])] = {
+  def getInvertedIndexIDs[T1, T2: ClassTag](ranksArray: RDD[(T1, Array[T2])], prefixSize: Int)
+  : RDD[(T2, Iterable[(T2,T1)])] = {
     // Create one tuple for each element (id, element)
     val tuples = ranksArray.flatMap(x => arrayToIdPairs(x, prefixSize))
   
@@ -88,8 +91,8 @@ object InvertedIndex {
    * 
    * Combine all pairs of element rankings for same element in the index
    */
-  def candidatesPerEntry(in: (Long, Iterable[(Long, (Long, Array[Long]))]))
-  : Iterable[Iterable[((Long, Array[Long]),(Long, Array[Long]))]] = {
+  def candidatesPerEntry[T1 <%Ordered[T1], T2](in: (T2, Iterable[(T2, (T1, Array[T2]))]))
+  : Iterable[Iterable[((T1, Array[T2]),(T1, Array[T2]))]] = {
     val element = in._1
     val rankings = in._2
 
@@ -112,8 +115,8 @@ object InvertedIndex {
    * 
    * Given inverted index, generate candidate pairs
    */
-  def getCandidates(in: RDD[(Long, Iterable[(Long, (Long, Array[Long]))])])
-  : RDD[((Long, Array[Long]), (Long, Array[Long]))] = {
+  def getCandidates[T1 <%Ordered[T1], T2](in: RDD[(T2, Iterable[(T2, (T1, Array[T2]))])])
+  : RDD[((T1, Array[T2]), (T1, Array[T2]))] = {
     in.flatMap(x => candidatesPerEntry(x))
       .flatMap(x => x)
       .filter(p => (p._1._1 < p._2._1))
@@ -125,8 +128,8 @@ object InvertedIndex {
    * Output:
    * -[RankingID1, RankingID2]  
    */
-  def candidatesPerEntryIDs(in: (Long, Iterable[(Long, Long)]))
-  : Iterable[Iterable[(Long, Long)]] = {
+  def candidatesPerEntryIDs[T1 <%Ordered[T1], T2](in: (T2, Iterable[(T1, T1)]))
+  : Iterable[Iterable[(T1, T1)]] = {
     val element = in._1
     val pairs = in._2
 
@@ -140,8 +143,8 @@ object InvertedIndex {
     }
   }    
   
-  def getCandidatesIDs(in: RDD[(Long, Iterable[(Long, Long)])])
-  : RDD[(Long, Long)] = {
+  def getCandidatesIDs[T1 <%Ordered[T1], T2](in: RDD[(T2, Iterable[(T1, T1)])])
+  : RDD[(T1, T1)] = {
     in.flatMap(x => candidatesPerEntryIDs(x))
       .flatMap(x => x)
       .filter(p => (p._1 < p._2))

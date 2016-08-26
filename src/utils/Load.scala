@@ -17,7 +17,7 @@ object Load {
      * Output:
      * -(RankingID, [Element1, Element2,...])
      */
-    private def arrayToTuple[T] ( in: Array[T]) : (T, Array[T]) = {
+    private def arrayToTuple[T: Manifest] ( in: Array[T]) : (T, Array[T]) = {
       var rankingID = in(0)
       var elements = new Array[T](in.size - 1)
       for (i <- 1 until in.size) {
@@ -37,14 +37,14 @@ object Load {
      * Load space separated ranking with ID as first element. It also sets
      * size of ranking K in order to prevent wrong input parameters usage or similar
      */
-    private def spaceSeparated[T] ( path: String, sc: SparkContext, partitions: Int )
-    : RDD[(T, Array[Long])] = {
+    private def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
+    : RDD[(String, Array[String])] = {
       
       // File reading
       val file = sc.textFile(path).repartition(partitions)
       
       // Split elements
-      val ranks = file.map(a => a.split(" ").map(_.toLong))
+      val ranks = file.map(a => a.split(" "))
       
       // Set ranking size
       Args.setK(ranks.first().size - 1)
@@ -69,8 +69,8 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    private def colonSeparated[T] ( path: String, sc: SparkContext, partitions: Int )
-    : RDD[(T, Array[Long])] = {
+    private def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
+    : RDD[(String, Array[String])] = {
       // File reading
       val file = sc.textFile(path).repartition(partitions)
 
@@ -80,7 +80,6 @@ object Load {
                            a.substring(a.lastIndexOf("\t") + 1, a.length())
                             .split(":")
                             .slice(0, Args.k)
-                            .map(_.toLong)
                            )
                            
       // Filter on ranking size, pruning those that are smaller than desired
@@ -95,13 +94,13 @@ object Load {
       }
 
       // Add unique ID as first element of the tuple
-      val ranksWithId = filtered.zipWithUniqueId().map(x => (x._2, x._1))      
+      val ranksWithId = filtered.zipWithUniqueId().map(x => (x._2.toString(), x._1))      
       
       return ranksWithId
     }
     
-    def loadData[T]( path: String, sc: SparkContext, partitions: Int ) 
-    : RDD[(T, Array[Long])] = {            
+    def loadData[T1, T2]( path: String, sc: SparkContext, partitions: Int ) 
+    : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
       val src = Source.fromFile(path)
       val line = src.getLines.take(1).mkString      
