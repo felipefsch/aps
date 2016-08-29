@@ -67,9 +67,14 @@ object InvIdxFetchPreFilt {
       
       // Move distinct() to previous lines to avoid unnecessary computation
       begin = System.nanoTime()
-      val similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
+      var similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
       end = System.nanoTime()
-      Profiling.stageTime("filter on threshold", begin, end)      
+      Profiling.stageTime("filter on threshold", begin, end)
+      
+      if (Args.PREGROUP) {
+        var duplicates = PreProcessing.getDuplicate(ranksArray)
+        similarRanks = similarRanks.union(duplicates)
+      }      
       
       // Saving output locally on each node
       begin = System.nanoTime()        

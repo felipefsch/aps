@@ -115,13 +115,13 @@ object Footrule {
    * predicting contribution to the distance of the elements not existing
    * on the given list
    */
-  def onPositionsWithPrediction(
+  def onPositionsWithPrediction[T1, T2](
       in1: Any,
       threshold: Long,
       k: Long)
-  : ((Long,Long), Long) = {
+  : ((String,String), Long) = {
     // Input as ANY should be casted!
-    var in = in1.asInstanceOf[((Long,Long), Iterable[(Long,Long,Long)])]
+    var in = in1.asInstanceOf[((String, String), Iterable[(String,Long,Long)])]
     
     // Pool with rank positions
     var pool1 = range(0, k.toInt)

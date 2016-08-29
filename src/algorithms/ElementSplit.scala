@@ -124,11 +124,17 @@ object ElementSplit {
         
         // Compute final distance and filter on threshold
         begin = System.nanoTime()        
-        val similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
+        var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
                                             .filter(x => x._2 <= Args.threshold)
         end = System.nanoTime()
         Profiling.stageTime("compute final distance and filter", begin, end)                                            
-                                   
+
+      
+        if (Args.PREGROUP) {
+          var duplicates = PreProcessing.getDuplicate(ranks)
+          similarRanks = similarRanks.union(duplicates)
+        }
+
         // Saving output locally on each node
         begin = System.nanoTime()        
         Store.storeRdd(output, similarRanks, Args.COUNT)

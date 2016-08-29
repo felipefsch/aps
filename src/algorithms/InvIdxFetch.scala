@@ -64,9 +64,15 @@ object InvIdxFetch {
       end = System.nanoTime()
       Profiling.stageTime("comput distances", begin, end) 
       
-      val similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
+      begin = System.nanoTime()
+      var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
       end = System.nanoTime()
       Profiling.stageTime("filter on threshold", begin, end) 
+            
+      if (Args.PREGROUP) {
+        var duplicates = PreProcessing.getDuplicate(ranksArray)
+        similarRanks = similarRanks.union(duplicates)
+      }        
       
       begin = System.nanoTime()      
       Store.storeRdd(output, similarRanks, Args.COUNT)
