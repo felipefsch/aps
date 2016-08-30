@@ -91,7 +91,7 @@ options:
     // Update denormalized threshold
     this.threshold = Footrule.denormalizeThreshold(k, normThreshold)
     // Update minimum overlap between ranks
-    this.minOverlap = Footrule.getMinOverlap(k, normThreshold)
+    this.minOverlap = Footrule.getMinCommonElements(k, normThreshold)
   }
   
   /**
@@ -222,7 +222,7 @@ options:
     if (options.get('threshold).isDefined) {
       normThreshold = options.get('threshold).mkString.toDouble
       threshold = Footrule.denormalizeThreshold(k, normThreshold)
-      minOverlap = Footrule.getMinOverlap(Args.k, normThreshold)
+      minOverlap = Footrule.getMinCommonElements(Args.k, normThreshold)
     }
       
     if (options.get('selectivity).isDefined)

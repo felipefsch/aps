@@ -137,7 +137,7 @@ object SyntheticDataSet {
       distinctElements: Long)
   : Unit = {
 
-    val minOverlap = utils.Footrule.getMinOverlap(k, threshold)
+    val minOverlap = utils.Footrule.getOverlapSyntheticDataSet(k, threshold)
     val combinations = n * (n - 1)
     val maxDist = Footrule.denormalizeThreshold(k, threshold)
     // Maximum number of non common elements in the end of the ranking

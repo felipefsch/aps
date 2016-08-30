@@ -28,15 +28,39 @@ object Footrule {
     return math.round((threshold * getMaxDistance(k)))
   }
   
-  // Sweet Spot between Inverted Indices and Metric-Space Indexing: Lemma 2
-  def getMinOverlap ( k: Long, threshold: Long ) : Long = {
-    var w = math.floor(0.5 * (1 + (2 * k) - (math.sqrt(1 + (4 * threshold)))))
-    return k - math.round(w)
+  /**
+   *  We want to be sure that in the prefix we have at least one
+   *  common element between two rankings
+   */
+  def getPrefixSize( k: Long, threshold: Long ) : Long = {
+    return k - getMinCommonElements(k, threshold) + 1
+  }
+  
+  /**
+   *  Sweet Spot between Inverted Indices and Metric-Space Indexing: Lemma 2
+   *  Corrected to ceil instead of floor after talk to evica
+   */
+  def getMinCommonElements ( k: Long, threshold: Long ) : Long = {
+    var w = math.ceil(0.5 * (1 + (2 * k) - (math.sqrt(1 + (4 * threshold)))))
+    return math.round(w)
   }  
   
-  def getMinOverlap ( k: Long, threshold: Double ) : Long = {
-    return getMinOverlap(k, denormalizeThreshold(k, threshold))
+  def getMinCommonElements ( k: Long, threshold: Double ) : Long = {
+    return getMinCommonElements(k, denormalizeThreshold(k, threshold))
   }
+  
+  /**
+   *  Get k - w as in lemma 2 from paper "Sweet Spot between...."
+   *  just to avoid changes on synthetic data set, which was working properly
+   *  using such overlap (bigger than the updated version)
+   */
+  def getOverlapSyntheticDataSet( k: Long, threshold: Double ) : Long = {
+    return k - getMinCommonElements(k, threshold)
+  }
+  
+  def getOverlapSyntheticDataSet( k: Long, threshold: Long ) : Long = {
+    return k - getMinCommonElements(k, threshold)
+  }  
   
   /**
    * Input:

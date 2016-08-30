@@ -40,7 +40,7 @@ object InvIdxFetchPreFilt {
       if (Args.PREGROUP)
         ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)          
            
-      var prefixSize = Args.k - Footrule.getMinOverlap(Args.k, Args.threshold) 
+      var prefixSize = Footrule.getPrefixSize(Args.k, Args.threshold)
             
       end = System.nanoTime()
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, prefixSize.toInt)
