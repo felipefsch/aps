@@ -77,10 +77,7 @@ object ElementSplit {
       
       try {
         // Load also sets ranking size k
-        begin = System.nanoTime()
         var ranks = Load.loadData(input, sc, Args.partitions)
-        end = System.nanoTime()
-        Profiling.stageTime("load data", begin, end)
         
         if (Args.PREGROUP)
           ranks = PreProcessing.groupDuplicatesAndStore(ranks, output)
@@ -89,45 +86,26 @@ object ElementSplit {
           println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
         }        
   
-        // Create (Element, Pos, ID)
-        begin = System.nanoTime()        
+        // Create (Element, Pos, ID)       
         val triples = ranks.flatMap(x => emitElementRankId(x))
-        end = System.nanoTime()
-        Profiling.stageTime("create triples", begin, end)
         
         // Group on elements (Element, [Element, Pos, ID]*)
         // and remove element to get [Element, Pos, ID]*
-        begin = System.nanoTime()        
         val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
-        end = System.nanoTime()
-        Profiling.stageTime("group on element", begin, end)
         
-        // Possible candidate pair for each element
-        begin = System.nanoTime()        
+        // Possible candidate pair for each element     
         val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
-        end = System.nanoTime()
-        Profiling.stageTime("create pairs", begin, end)
         
-        // Group elements for all created candidates
-        begin = System.nanoTime()        
-        val groupOnCandidates = candidates.groupByKey()
-        end = System.nanoTime()
-        Profiling.stageTime("group elements of pair", begin, end)        
+        // Group elements for all created candidates     
+        val groupOnCandidates = candidates.groupByKey()    
         
         // Filter empty candidates and those without minimum
-        // overlap,since we know threshold can not be reached
-        begin = System.nanoTime()        
-        val filteredOnOverlap = groupOnCandidates.map(x => if (x._2.size >= Args.minOverlap.toInt) x)
-                                                 .filter(x => x != ())
-        end = System.nanoTime()
-        Profiling.stageTime("filter on overlap", begin, end)                                                 
+        // overlap,since we know threshold can not be reached    
+        val filteredOnOverlap = groupOnCandidates.filter(x => x._2.size >= Args.minOverlap.toInt)                                             
         
-        // Compute final distance and filter on threshold
-        begin = System.nanoTime()        
+        // Compute final distance and filter on threshold       
         var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
-                                            .filter(x => x._2 <= Args.threshold)
-        end = System.nanoTime()
-        Profiling.stageTime("compute final distance and filter", begin, end)                                            
+                                            .filter(x => x._2 <= Args.threshold)                                       
 
       
         if (Args.PREGROUP) {
@@ -135,11 +113,8 @@ object ElementSplit {
           similarRanks = similarRanks.union(duplicates)
         }
 
-        // Saving output locally on each node
-        begin = System.nanoTime()        
-        Store.storeRdd(output, similarRanks, Args.COUNT)
-        end = System.nanoTime()
-        Profiling.stageTime("store results", begin, end)           
+        // Saving output locally on each node     
+        Store.storeRdd(output, similarRanks, Args.COUNT)        
         
       } finally {
         sc.stop()
