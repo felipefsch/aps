@@ -178,7 +178,7 @@ options:
         case "--pregroup" :: value :: tail =>
                                nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)                               
         case option :: tail => println("Unknown option " + option + usage)
-                               exit(1) 
+                               sys.exit(1) 
       }
     }
     
