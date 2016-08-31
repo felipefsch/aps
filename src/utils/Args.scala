@@ -104,6 +104,7 @@ options:
     
     if (args.length == 0)  {
       println(usage)
+      sys.exit(1)
     }
     
     val arglist = args.toList
@@ -177,7 +178,7 @@ options:
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
         case "--pregroup" :: value :: tail =>
                                nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)                               
-        case option :: tail => println("Unknown option " + option + usage)
+        case option :: tail => println("Unknown option " + option + "\n" + usage)
                                sys.exit(1) 
       }
     }
