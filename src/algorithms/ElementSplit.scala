@@ -25,17 +25,20 @@ object ElementSplit {
      * Input:
      * -(ID, [Elements]*)
      * Output:
-     * -(Element, Rank, ID)
+     * -(Element, Rank, RankingID)
      * 
      * For all ranking elements
      */
-    def emitElementRankId[T1, T2]( in: (T1, Array[T2])) : IndexedSeq[(T2, Long, T1)] = {
+    def emitElementRankId[T1, T2]( in: (T1, Array[T2])) : Array[(T2, Long, T1)] = {
       var array = in._2
       var rankingId = in._1
       
-      for (i <- 0 until array.size) yield {
+      var output = Array.tabulate(array.length){ x => (array(x), x.toLong, rankingId)}
+      
+      return output
+      /*for (i <- 0 until array.size) yield {
         (array(i), i.toLong, rankingId)
-      }
+      }*/
     }
     
     /**
@@ -51,9 +54,12 @@ object ElementSplit {
     def emitCandidatePairs[T1 <%Ordered[T1], T2]( in: Iterable[(T2, Long, T1)])
     : Iterable[((T1, T1),(T2, Long, Long))] = {
 
-      for (in1 <- in; in2 <- in; if (in1._3 < in2._3)) yield {
+      var output = in.flatMap(x => in.map(y => ((x._3, y._3),(x._1, x._2, y._2))).filter(x => x._1._1 < x._1._2))
+      
+      return output
+      /*for (in1 <- in; in2 <- in; if (in1._3 < in2._3)) yield {
           ((in1._3, in2._3),(in1._1, in1._2, in2._2))  
-      }
+      }*/
     }
   
     def main(args: Array[String]): Unit = {
@@ -61,10 +67,10 @@ object ElementSplit {
      
       // For profiling
       var begin, end = 0.toLong
-      var normThreshold = Args.normThreshold
-      var input = Args.input    
-      var output = Args.output + "ElementSplit"
-      var master = Args.masterIp
+      val normThreshold = Args.normThreshold
+      val input = Args.input    
+      val output = Args.output + "ElementSplit"
+      val master = Args.masterIp
       
       val conf = new SparkConf()
               .setMaster(master)

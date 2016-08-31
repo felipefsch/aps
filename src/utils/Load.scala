@@ -90,7 +90,7 @@ object Load {
         val filterAmount = filtered.take(Args.n)
         
         // Convert array to RDD
-       filtered = sc.parallelize(filterAmount)
+        filtered = sc.parallelize(filterAmount)
       }
 
       // Add unique ID as first element of the tuple
