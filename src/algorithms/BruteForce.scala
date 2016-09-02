@@ -16,24 +16,14 @@ import benchmark.Profiling
 object BruteForce {
  
   def main(args: Array[String]): Unit = {
-    Args.parse(args)
+    val sc = Config.getSparkContext(args)
     
     var begin, end = 0.toLong
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "BruteForce"
     
-    var master = Args.masterIp
     var storeCount = Args.COUNT
-    
-    val conf = new SparkConf()
-              .setMaster(master)
-              .setAppName("bruteForce")
-              .set("spark.driver.allowMultipleContexts", "true")
-              .set("spark.executor.cores", Args.cores)
-              .set("spark.executor.instances", Args.executors)
-    
-    val sc = new SparkContext(conf)
     
     try {
       // Load also sets ranking size k  

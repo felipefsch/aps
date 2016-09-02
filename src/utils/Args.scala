@@ -42,6 +42,7 @@ object Args {
   var partitions = 1
   var cores = "1"
   var executors = "1"
+  var dynamicAllocation = "false"
   
   val usage = """
 usage: class [options] ...
@@ -68,8 +69,9 @@ options:
    --profiling        BOOL : profiling mode
    --createData       BOOL : create synthetic dataset
    --partitions       N    : number of partitions for repartitioning
-   --cores            N    : number of cores to use on local machine
    --executors        N    : number of executors on local machine
+   --cores            N    : number of cores per executor
+   --dynamicAlloc     BOOL : dynamically allocate executors
    --masterIp         IP   : master node IP
    --nExecs           N    : number of executions of each algorithm
    --writeAll         BOOL : write execution time for each execution
@@ -162,6 +164,8 @@ options:
                                nextOption(map ++ Map('cores -> value.toString()), tail)
         case "--executors" :: value :: tail =>
                                nextOption(map ++ Map('executors -> value.toString()), tail)
+        case "--dynamicAlloc" :: value :: tail =>
+                               nextOption(map ++ Map('dynamicAlloc -> value.toString()), tail)                               
         case "--masterIp" :: value :: tail =>
                                nextOption(map ++ Map('masterIp -> value.toString()), tail)
         case "--benchmark" :: value :: tail =>
@@ -279,7 +283,10 @@ options:
       cores = options.get('cores).mkString
       
     if (options.get('executors).isDefined)
-      executors = options.get('executors).mkString      
+      executors = options.get('executors).mkString
+      
+    if (options.get('dynamicAlloc).isDefined)
+      dynamicAllocation = options.get('dynamicAlloc).mkString      
 
     if (options.get('datasetOutput).isDefined)
       datasetOutput = options.get('datasetOutput).mkString   

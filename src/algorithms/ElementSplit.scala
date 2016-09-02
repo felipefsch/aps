@@ -63,23 +63,12 @@ object ElementSplit {
     }
   
     def main(args: Array[String]): Unit = {
-      Args.parse(args)
-     
-      // For profiling
-      var begin, end = 0.toLong
+      val sc = Config.getSparkContext(args)
+      
       val normThreshold = Args.normThreshold
       val input = Args.input    
       val output = Args.output + "ElementSplit"
-      val master = Args.masterIp
-      
-      val conf = new SparkConf()
-              .setMaster(master)
-              .setAppName("elementSplit")
-              .set("spark.driver.allowMultipleContexts", "true")
-              .set("spark.executor.cores", Args.cores)
-              .set("spark.executor.instances", Args.executors)
-      
-      val sc = new SparkContext(conf)
+
       
       try {
         // Load also sets ranking size k

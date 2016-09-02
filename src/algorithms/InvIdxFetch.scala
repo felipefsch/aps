@@ -14,22 +14,13 @@ import benchmark.Profiling
 object InvIdxFetch {
   
   def main(args: Array[String]): Unit = {
-    Args.parse(args)
+    val sc = Config.getSparkContext(args)
   
     var begin, end = 0.toLong
     var normThreshold = Args.normThreshold
     var input = Args.input    
     var output = Args.output + "InvIdxFetch"
-    var master = Args.masterIp     
-    
-    val conf = new SparkConf()
-              .setMaster(master)
-              .setAppName("invertedIndexFetchID")
-              .set("spark.driver.allowMultipleContexts", "true")
-              .set("spark.executor.cores", Args.cores)
-              .set("spark.executor.instances", Args.executors)
-    
-    val sc = new SparkContext(conf)
+
     try {
       // Load also sets ranking size k
       begin = System.nanoTime()
