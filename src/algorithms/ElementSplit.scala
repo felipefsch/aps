@@ -120,7 +120,7 @@ object ElementSplit {
         }
 
         // Saving output locally on each node     
-        Store.storeRdd(output, similarRanks, Args.COUNT)        
+        Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)        
         
       } finally {
         sc.stop()

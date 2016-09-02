@@ -7,6 +7,7 @@ object Args {
   var PROFILING = false
   var COUNT = false
   var CREATEDATA = false
+  var STORERESULTS = true
   
   var WRITEALL = true
   var INIT = true
@@ -59,6 +60,7 @@ options:
    --config           PATH : path to XML configuration file
    --input            PATH : input dataset path
    --output           PATH : result output path
+   --storeresults     BOOL : store final results 
    --datasetOutput    PATH : dataset output path (when creating new ones)
    --benchmarkOutput  PATH : benchmarking results output path
    --count            BOOL : count number of result pairs
@@ -136,6 +138,8 @@ options:
                                nextOption(map ++ Map('input -> value.toString()), tail)
         case "--output" :: value :: tail =>
                                nextOption(map ++ Map('output -> value.toString()), tail)
+        case "--storeresults" :: value :: tail =>
+                               nextOption(map ++ Map('storeresults -> value.toBoolean), tail)                               
         case "--datasetOutput" :: value :: tail =>
                                nextOption(map ++ Map('datasetOutput -> value.toString()), tail)
         case "--benchmarkOutput" :: value :: tail =>

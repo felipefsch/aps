@@ -25,14 +25,20 @@ object Store {
    * 
    * Store RDD to defined path and count its elements if flag set to true
    */
-  def storeRdd[T]( path: String, rdd: RDD[T], count: Boolean) : Unit = {
-    if (count) {
-      rddToLocalAndCount(path, rdd)
+  def rdd[T]( path: String, rdd: RDD[T], count: Boolean, storeRdd: Boolean) : Unit = {
+    if (storeRdd) {
+      if (count) {
+        rddToLocalAndCount(path, rdd)
+      }
+      else {
+        rddToLocalMachine(path, rdd)
+      }
     }
     else {
-      rddToLocalMachine(path, rdd)
+      if (count) {
+        this.count(path, rdd)
+      }
     }
-      
   }
   
   /**

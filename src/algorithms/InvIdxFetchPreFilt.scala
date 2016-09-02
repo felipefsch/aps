@@ -78,7 +78,7 @@ object InvIdxFetchPreFilt {
       
       // Saving output locally on each node
       begin = System.nanoTime()        
-      Store.storeRdd(output, similarRanks, Args.COUNT)
+      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
       end = System.nanoTime()
       Profiling.stageTime("store results", begin, end)
 
