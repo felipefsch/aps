@@ -54,7 +54,8 @@ object InvIdx {
             
       if (Args.PREGROUP) {
         var duplicates = PreProcessing.getDuplicate(ranksArray)
-        similarRanks = similarRanks.union(duplicates)
+        var expandedDuplicates = PreProcessing.expandDuplicates(duplicates)
+        similarRanks = similarRanks.union(expandedDuplicates)
       }      
       
       begin = System.nanoTime()      

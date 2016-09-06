@@ -8,6 +8,22 @@ object PreProcessing {
     return input.split(separator)
   }
   
+  /**
+   * Input:
+   * -duplicates: (("id1:id2:id3:...", "duplicates"), 0)
+   * 
+   * Output:
+   * -((id1, id2), 0)*
+   * 
+   * Expand duplicates into its pairs
+   */
+  def expandDuplicates(duplicates: RDD[((String, String), Long)])
+    : RDD[((String, String), Long)] = {
+    var ids = duplicates.map(x => x._1._1.split(":"))
+    var pairs = ids.flatMap(x => CartesianProduct.orderedWithoutSelf(x))
+    return pairs.map(x => (x, 0.toLong))
+  }
+  
   def getDuplicate[T](rdd: RDD[(String, Array[T])])
   : RDD[((String, String), Long)] = {
     return rdd.filter(x => x._1.contains(":")).map(x => ((x._1, "duplicates"), 0.toLong))  

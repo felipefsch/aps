@@ -24,4 +24,8 @@ object CartesianProduct {
     
     return productFiltered
   }
+  
+  def orderedWithoutSelf[T <%Ordered[T]] ( in: Array[T] ) : Array[(T, T)] = {
+    return in.flatMap(x => in.map(y => (x, y))).filter(f => f._1 < f._2)
+  }
 }

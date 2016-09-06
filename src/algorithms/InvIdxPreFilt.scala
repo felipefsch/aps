@@ -56,7 +56,8 @@ object InvIdxPreFilt {
 
       if (Args.PREGROUP) {
         var duplicates = PreProcessing.getDuplicate(ranksArray)
-        similarRanks = similarRanks.union(duplicates)
+        var expandedDuplicates = PreProcessing.expandDuplicates(duplicates)
+        similarRanks = similarRanks.union(expandedDuplicates)
       }      
       
       // Saving output locally on each node
