@@ -58,7 +58,7 @@ object BruteForce {
       }
 
       begin = System.nanoTime()
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
+      Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)
       end = System.nanoTime()
       Profiling.stageTime("store results", begin, end)
       

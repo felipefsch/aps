@@ -72,17 +72,17 @@ object ElementSplit {
       
       try {
         // Load also sets ranking size k
-        var ranks = Load.loadData(input, sc, Args.partitions)
+        var ranksArray = Load.loadData(input, sc, Args.partitions)
         
         if (Args.PREGROUP)
-          ranks = PreProcessing.groupDuplicatesAndStore(ranks, output)
+          ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)
         
         if (Args.DEBUG) {
           println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
         }        
   
         // Create (Element, Pos, ID)       
-        val triples = ranks.flatMap(x => emitElementRankId(x))
+        val triples = ranksArray.flatMap(x => emitElementRankId(x))
         
         // Group on elements (Element, [Element, Pos, ID]*)
         // and remove element to get [Element, Pos, ID]*
@@ -104,12 +104,12 @@ object ElementSplit {
 
       
         if (Args.PREGROUP) {
-          var duplicates = PreProcessing.getDuplicate(ranks)
+          var duplicates = PreProcessing.getDuplicate(ranksArray)
           similarRanks = similarRanks.union(duplicates)
         }
 
         // Saving output locally on each node     
-        Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)        
+        Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)        
         
       } finally {
         sc.stop()

@@ -8,6 +8,7 @@ object Args {
   var COUNT = false
   var CREATEDATA = false
   var STORERESULTS = true
+  var EXPANDRESULTS = false
   
   var WRITEALL = true
   var INIT = true
@@ -61,7 +62,8 @@ options:
    --config           PATH : path to XML configuration file
    --input            PATH : input dataset path
    --output           PATH : result output path
-   --storeresults     BOOL : store final results 
+   --storeresults     BOOL : store final results
+   --expandresults    BOOL : expand resulting IDs with its rankings 
    --datasetOutput    PATH : dataset output path (when creating new ones)
    --benchmarkOutput  PATH : benchmarking results output path
    --count            BOOL : count number of result pairs
@@ -141,7 +143,9 @@ options:
         case "--output" :: value :: tail =>
                                nextOption(map ++ Map('output -> value.toString()), tail)
         case "--storeresults" :: value :: tail =>
-                               nextOption(map ++ Map('storeresults -> value.toBoolean), tail)                               
+                               nextOption(map ++ Map('storeresults -> value.toBoolean), tail)
+        case "--expandresults" :: value :: tail =>
+                               nextOption(map ++ Map('expandresults -> value.toBoolean), tail)                               
         case "--datasetOutput" :: value :: tail =>
                                nextOption(map ++ Map('datasetOutput -> value.toString()), tail)
         case "--benchmarkOutput" :: value :: tail =>
@@ -317,6 +321,12 @@ options:
       
     if (options.get('groupduplicates).isDefined)
       PREGROUP = options.get('groupduplicates).mkString.toBoolean      
+      
+    if (options.get('expandresults).isDefined)
+      EXPANDRESULTS = options.get('expandresults).mkString.toBoolean 
+      
+    if (options.get('storeresults).isDefined)
+      STORERESULTS = options.get('storeresults).mkString.toBoolean       
       
     if (DEBUG) {
       println(options)

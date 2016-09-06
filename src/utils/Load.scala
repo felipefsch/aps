@@ -41,7 +41,7 @@ object Load {
     : RDD[(String, Array[String])] = {
       
       // File reading
-      val file = sc.textFile(path).repartition(partitions)
+      val file = sc.textFile(path, partitions)
       
       // Split elements
       val ranks = file.map(a => a.split(" "))
@@ -72,7 +72,7 @@ object Load {
     private def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
     : RDD[(String, Array[String])] = {
       // File reading
-      val file = sc.textFile(path).repartition(partitions)
+      val file = sc.textFile(path, partitions)
 
       // Split input, removing initial string and
       // elements as colon separated numbers
@@ -90,7 +90,7 @@ object Load {
         val filterAmount = filtered.take(Args.n)
         
         // Convert array to RDD
-        filtered = sc.parallelize(filterAmount)
+        filtered = sc.parallelize(filterAmount).repartition(partitions)
       }
 
       // Add unique ID as first element of the tuple

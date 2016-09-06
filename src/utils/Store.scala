@@ -22,10 +22,16 @@ object Store {
    * -path: folder path where to store number of elements
    * -rdd: the RDD with the local results
    * -count: count number of elements 
+   * -storeRdd: store the rdd
    * 
    * Store RDD to defined path and count its elements if flag set to true
    */
-  def rdd[T]( path: String, rdd: RDD[T], count: Boolean, storeRdd: Boolean) : Unit = {
+  def rdd[T](
+      path: String,
+      rdd: RDD[T],
+      count: Boolean,
+      storeRdd: Boolean)
+  : Unit = {
     if (storeRdd) {
       if (count) {
         rddToLocalAndCount(path, rdd)
@@ -38,6 +44,34 @@ object Store {
       if (count) {
         this.count(path, rdd)
       }
+    }
+  }
+  
+  /**
+   * Input:
+   * -path: folder path where to store number of elements
+   * -rdd: the RDD with the local results
+   * -count: count number of elements 
+   * -storeRdd: store the rdd
+   * -ids: rdd with pairs of ranking IDs and the distance between them
+   * -fetchIds: fetch Ids before storing, so that we store complete ranking not only the ids
+   * 
+   * Store RDD to defined path and count its elements if flag set to true
+   */
+  def rdd[T1, T2](
+      path: String,
+      rdd: RDD[(T1, Array[T2])],
+      count: Boolean,
+      storeRdd: Boolean,
+      ids: RDD[((T1, T1), Long)],
+      fetchIds: Boolean)
+  : Unit = {
+    if (fetchIds) {
+      var fetched = Fetch.fetchIds(rdd, ids)
+      this.rdd(path, fetched, count, storeRdd)
+    }
+    else {
+      this.rdd(path, rdd, count, storeRdd)
     }
   }
   
