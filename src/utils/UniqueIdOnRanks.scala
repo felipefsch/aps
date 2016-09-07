@@ -16,6 +16,26 @@ import org.apache.spark.SparkContext._
 object UniqueIdOnRanks {
   
   /**
+   * Add unique ID on ranking files
+   * 
+   * The best way to do it is to use the spark-shell and copy the commands
+   * after SparkContext creation. It will generate a folder in the same input path
+   * with .indexed in the end with many part-0000x inside. To merge them into a single
+   * file you can run $cat part-00000 part-00001 ... > out.txt
+   * which will merge into out.txt file.
+   */
+  def idOnRealDataset(path: String)
+  {
+    val sc = Config.getSparkContext(Array[String]())
+    val file = sc.textFile(path)
+    val lines = file.map(x => x.split("\n"))
+    val indexedLines = lines.zipWithUniqueId()
+    val swapedOrder = indexedLines.map(x => (x._2, x._1.mkString("")))
+    swapedOrder.saveAsTextFile(path + ".indexed")
+    //Store.rdd(path + ".indexed", swapedOrder, false, true)
+  }
+  
+  /**
    * Transform elements array into string for better output representation
    * e.g. not including string "List(" in the output
    */

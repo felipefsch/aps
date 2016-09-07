@@ -33,7 +33,7 @@ object Benchmark {
     }
     catch {
       case e: Exception => {
-        bw.append("\nException: " + e.toString() + "\n\n")
+        bw.append("[ERROR] " + e.toString() + "\n")
         bw.flush()        
         
         result = -1                

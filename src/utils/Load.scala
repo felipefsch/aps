@@ -77,13 +77,15 @@ object Load {
       // Split input, removing initial string and
       // elements as colon separated numbers
       val ranks = file.map(a => 
-                           a.substring(a.lastIndexOf("\t") + 1, a.length())
-                            .split(":")
-                            .slice(0, Args.k)
+                           (a.substring(1, a.indexOf(",")),
+                            a.substring(a.lastIndexOf("\t") + 1, a.length())
+                             .split(":")
+                             .slice(0, Args.k)
+                            )
                            )
                            
       // Filter on ranking size, pruning those that are smaller than desired
-      var filtered = ranks.filter(x => x.size == Args.k)
+      var filtered = ranks.filter(x => x._2.size == Args.k)
       
       if (Args.n > 0) {
         // Take only desired amount of entries
@@ -91,12 +93,9 @@ object Load {
         
         // Convert array to RDD
         filtered = sc.parallelize(filterAmount).repartition(partitions)
-      }
-
-      // Add unique ID as first element of the tuple
-      val ranksWithId = filtered.zipWithUniqueId().map(x => (x._2.toString(), x._1))      
+      }      
       
-      return ranksWithId
+      return filtered
     }
     
     def loadData( path: String, sc: SparkContext, partitions: Int ) 
