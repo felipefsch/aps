@@ -8,21 +8,6 @@ object Duplicates {
     return input.split(separator)
   }
   
-  /*def arrayCombinations[T <%Ordered[T]](ar: Array[T], id2: T, dist: Long)
-  : ((T, T), Long) = {
-    
-    var t = ar.map(x => x)
-    
-     for (a <- ar) yield {
-       if (a < id2) {
-         ((a, id2), dist)
-       }
-       else {
-         ((id2, a), dist)
-       }
-     }
-  }*/
-  
   /**
    * Input:
    * -duplicates: (("id1:id2:id3:...", "duplicates"), 0)
@@ -34,23 +19,42 @@ object Duplicates {
    */
   def expandDuplicates(similarRanks: RDD[((String, String), Long)])
     : RDD[((String, String), Long)] = {
+    var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":"))    
+    
+    // Expand those with similar on left side
+    var filteredLeft = similarRanks.filter(x => x._1._1.contains(":") && !x._1._2.equals("duplicates"))
+    var expandedLeft = filteredLeft.flatMap(
+                                x => x._1._1.split(":").map(
+                                    y => 
+                                      if (y < x._1._2 || x._1._2.contains(":"))
+                                        ((y, x._1._2), x._2)
+                                      else
+                                        ((x._1._2, y), x._2)
+                                )
+                              )  
+    var expandedLeftOnly = expandedLeft.filter(x => !x._1._2.contains(":"))
+    
+    // Expand those with similar on right side
+    var filteredRight = similarRanks.filter(x => x._1._2.contains(":"))
+                                       .union(expandedLeft.filter(x => x._1._2.contains(":")))
+    var expandedRight = filteredRight.flatMap(
+                                x => x._1._2.split(":").map(
+                                    y => 
+                                      if (y < x._1._1)
+                                        ((y, x._1._1), x._2)
+                                      else 
+                                        ((x._1._1, y), x._2)
+                                )
+                              )
+    
+     
     // Expand duplicates, i.e., those with distance 0
     var filtered = similarRanks.filter(x => x._1._2.equals("duplicates"))
     var ids = filtered.map(x => x._1._1.split(":"))
     var pairs = ids.flatMap(x => CartesianProduct.orderedWithoutSelf(x))
     var expandedDuplicates = pairs.map(x => (x, 0.toLong))
     
-    // Expand those with similar on left side
-    var filteredLeft = similarRanks.filter(x => x._1._1.contains(":"))
-    var idsLeft = filteredLeft.map(x => ((x._1._1.split(":"), x._1._2), x._2))
-    var pairsLeft = idsLeft.map(x => x._1._1.map(y => if (x._2) else (x._2)))
-    
-    
-    // Expand those with similar on right side
-    var filteredRight = similarRanks.filter(x => x._1._2.contains(":"))
-    var idsRight = filteredRight.map(x => ((x._1._2.split(":"), x._1._1), x._2))
-    
-    return pairs.map(x => (x, 0.toLong))
+    return expandedDuplicates.union(expandedRight).union(expandedLeftOnly).distinct()
   }
   
   /**

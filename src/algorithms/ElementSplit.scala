@@ -105,8 +105,8 @@ object ElementSplit {
       
         if (Args.PREGROUP) {
           var duplicates = Duplicates.getDuplicates(ranksArray)
-          var expandedDuplicates = Duplicates.expandDuplicates(duplicates)
-          similarRanks = similarRanks.union(expandedDuplicates)
+          var rddUnion = similarRanks.union(duplicates)
+          similarRanks = Duplicates.expandDuplicates(rddUnion)
         }
 
         // Saving output locally on each node     
