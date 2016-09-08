@@ -60,18 +60,18 @@ object Store {
    */
   def rdd[T1, T2](
       path: String,
-      rdd: RDD[(T1, Array[T2])],
+      allRanks: RDD[(T1, Array[T2])],
       count: Boolean,
       storeRdd: Boolean,
-      ids: RDD[((T1, T1), Long)],
+      similarRanks: RDD[((T1, T1), Long)],
       fetchIds: Boolean)
   : Unit = {
     if (fetchIds) {
-      var fetched = Fetch.fetchIds(rdd, ids)
+      var fetched = Fetch.fetchIds(allRanks, similarRanks)
       this.rdd(path, fetched, count, storeRdd)
     }
     else {
-      this.rdd(path, rdd, count, storeRdd)
+      this.rdd(path, similarRanks, count, storeRdd)
     }
   }
   
