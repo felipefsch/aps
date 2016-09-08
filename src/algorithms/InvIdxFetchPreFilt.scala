@@ -25,7 +25,7 @@ object InvIdxFetchPreFilt {
       var ranksArray =  Load.loadData(input, sc, Args.partitions)   
 
       if (Args.PREGROUP)
-        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)          
+        ranksArray = Duplicates.findDuplicates(ranksArray, output)          
            
       var prefixSize = Footrule.getPrefixSize(Args.k, Args.threshold)
             
@@ -44,8 +44,8 @@ object InvIdxFetchPreFilt {
       var similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
       
       if (Args.PREGROUP) {
-        var duplicates = PreProcessing.getDuplicate(ranksArray)
-        var expandedDuplicates = PreProcessing.expandDuplicates(duplicates)
+        var duplicates = Duplicates.getDuplicates(ranksArray)
+        var expandedDuplicates = Duplicates.expandDuplicates(duplicates)
         similarRanks = similarRanks.union(expandedDuplicates)
       }      
       

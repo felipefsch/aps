@@ -29,7 +29,7 @@ object BruteForce {
       var ranksArray = Load.loadData(input, sc, Args.partitions)         
       
       if (Args.PREGROUP)
-        ranksArray = PreProcessing.groupDuplicatesAndStore(ranksArray, output)        
+        ranksArray = Duplicates.findDuplicates(ranksArray, output)        
       
       // Cartesian product
       val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)   
@@ -40,9 +40,9 @@ object BruteForce {
       var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
       
       if (Args.PREGROUP) {
-        var duplicates = PreProcessing.getDuplicate(ranksArray)
-        var expandedDuplicates = PreProcessing.expandDuplicates(duplicates)
-        similarRanks = similarRanks.union(expandedDuplicates)
+        var duplicates = Duplicates.getDuplicates(ranksArray)
+        var rddUnion = similarRanks.union(duplicates)
+        similarRanks = Duplicates.expandDuplicates(rddUnion)        
       }
 
       Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)
