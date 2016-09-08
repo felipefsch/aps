@@ -78,7 +78,7 @@ object Load {
       // elements as colon separated numbers
       val ranks = file.map(a => 
                            (a.substring(1, a.indexOf(",")),
-                            a.substring(a.lastIndexOf("\t") + 1, a.length())
+                            a.substring(a.lastIndexOf("\t") + 1, a.length() - 1)
                              .split(":")
                              .slice(0, Args.k)
                             )
