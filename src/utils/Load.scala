@@ -3,6 +3,7 @@ package utils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import scala.io.Source
+import java.io.File
 
 /**
  * Data Loading method.
@@ -10,6 +11,7 @@ import scala.io.Source
  * implemented under this object 
  */
 object Load {
+  
     /**
      * Input:
      * -[RankingID, Element1, Element2,...]
@@ -37,7 +39,7 @@ object Load {
      * Load space separated ranking with ID as first element. It also sets
      * size of ranking K in order to prevent wrong input parameters usage or similar
      */
-    private def spaceSeparated ( path: String, sc: SparkContext, partitions: Int )
+    private def spaceSeparated(path: String, sc: SparkContext, partitions: Int)
     : RDD[(String, Array[String])] = {
       
       // File reading
@@ -69,7 +71,7 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    private def colonSeparated ( path: String, sc: SparkContext, partitions: Int )
+    private def colonSeparated (path: String, sc: SparkContext, partitions: Int)
     : RDD[(String, Array[String])] = {
       // File reading
       val file = sc.textFile(path, partitions)
@@ -98,7 +100,7 @@ object Load {
       return filtered
     }
     
-    def loadData( path: String, sc: SparkContext, partitions: Int ) 
+    def loadData(path: String, sc: SparkContext, partitions: Int) 
     : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
       val src = Source.fromFile(path)
@@ -112,5 +114,39 @@ object Load {
         return this.colonSeparated(path, sc, partitions)
       else
         return this.spaceSeparated(path, sc, partitions)
+    }
+      
+    /**
+     * Input:
+     * -dir: directory path
+     * 
+     * Get part-xxxxx files in directory and make string separating the
+     * paths with semi colon (",")
+     */
+    private def getPartFiles(dir: String)
+    : String = {
+      val d = new File(dir)
+      if (d.exists && d.isDirectory) {
+        d.listFiles.filter(_.isFile).toList.filter(_.getAbsolutePath.contains("part-"))
+            .filter(!_.getAbsolutePath.contains(".crc")).mkString(",")  
+      } else {
+        ""
+      }
+    }
+    
+    /**
+     * Input:
+     * -dir: directory with part files to be read 
+     */
+    def loadSimilars(dir: String, sc: SparkContext, partitions: Int)
+    : RDD[(String, String)] = {
+      val partFiles = getPartFiles(dir)
+      var l = sc.textFile(partFiles, partitions)
+      var similars = l.map(x =>
+        (x.substring(x.lastIndexOf("(") + 1, x.indexOf(",")),
+         x.substring(x.indexOf(",") + 1, x.indexOf(")")))
+      )
+      
+      return similars
     }
 }
