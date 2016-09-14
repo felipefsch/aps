@@ -28,6 +28,9 @@ object BruteForce {
       // Load also sets ranking size k  
       var ranksArray = Load.loadData(input, sc, Args.partitions)         
       
+      if (Args.NEARDUPLICATES)
+        ranksArray = NearDuplicates.getNearDuplicates(Args.duplicatesInput, ranksArray, sc, Args.partitions)
+      
       if (Args.PREGROUP)
         ranksArray = Duplicates.findDuplicates(ranksArray, output)        
       

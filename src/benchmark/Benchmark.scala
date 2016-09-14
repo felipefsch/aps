@@ -113,7 +113,8 @@ object Benchmark {
       bw.append("-threshold: " + Args.normThreshold + "\n")
       bw.append("-input data: " + Args.input + "\n")
       bw.append("-store final results: " + Args.STORERESULTS + "\n")      
-      bw.append("-pre group duplicates: " + Args.PREGROUP + "\n")            
+      bw.append("-pre group duplicates: " + Args.PREGROUP + "\n")
+      bw.append("-pre group near duplicates: " + Args.NEARDUPLICATES + "\n")                 
       bw.append("###############################################\n\n")
       bw.flush()      
       

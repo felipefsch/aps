@@ -131,7 +131,11 @@ object Store {
           FileUtils.deleteDirectory(new File(path)); 
           DELDIR = true
         }
-        rdd.saveAsTextFile(path)
+        if (Args.DEBUG)
+          rdd.coalesce(1).saveAsTextFile(path)
+        else
+          rdd.saveAsTextFile(path)
+            
       }
       catch {
         case NonFatal(t) => println("Could not output the result.")

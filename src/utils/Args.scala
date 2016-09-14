@@ -21,6 +21,7 @@ object Args {
   var BENCHMARK = true
   
   var PREGROUP = false
+  var NEARDUPLICATES = false
   
   var benchmarkOutput = ""
   
@@ -39,6 +40,7 @@ object Args {
   var output = ""
   var datasetOutput = ""
   var masterIp = "local"
+  var duplicatesInput = ""
   
   var partitions = 1
   var cores = "1"
@@ -64,7 +66,7 @@ options:
    --output           PATH : result output path
    --storeresults     BOOL : store final results
    --expandresults    BOOL : expand resulting IDs with its rankings 
-   --datasetOutput    PATH : dataset output path (when creating new ones)
+   --datasetOutput    PATH : dataset output path (for synthetic data creation)
    --benchmarkOutput  PATH : benchmarking results output path
    --count            BOOL : count number of result pairs
    --debug            BOOL : debug mode
@@ -86,6 +88,8 @@ options:
    --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
    --benchmark        BOOL : run benchmarking (false dont run any approach)
    --pregroup         BOOL : group duplicates before checking for similars
+   --nearduplicates   BOOL : search first for near duplicates
+   --duplicatesInput  PATH : folder with part-xxxxx files with similar rankings
   """
   
   /**
@@ -189,7 +193,11 @@ options:
         case "--elementsplit" :: value :: tail =>
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
         case "--pregroup" :: value :: tail =>
-                               nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)                               
+                               nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)
+        case "--duplicatesInput" :: value :: tail =>
+                               nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)                               
+        case "--nearduplicates" :: value :: tail =>
+                               nextOption(map ++ Map('nearduplicates -> value.toBoolean), tail)                               
         case option :: tail => println("Unknown option " + option + "\n" + usage)
                                sys.exit(1) 
       }
@@ -269,7 +277,7 @@ options:
       BENCHMARK = options.get('benchmark).mkString.toBoolean      
 
     if (options.get('input).isDefined)
-      input = options.get('input).mkString      
+      input = options.get('input).mkString          
 
     if (options.get('output).isDefined)
       output = options.get('output).mkString
@@ -320,7 +328,13 @@ options:
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean
       
     if (options.get('groupduplicates).isDefined)
-      PREGROUP = options.get('groupduplicates).mkString.toBoolean      
+      PREGROUP = options.get('groupduplicates).mkString.toBoolean
+
+    if (options.get('nearduplicates).isDefined)
+      NEARDUPLICATES = options.get('nearduplicates).mkString.toBoolean   
+      
+    if (options.get('duplicatesInput).isDefined)
+      duplicatesInput = options.get('duplicatesInput).mkString        
       
     if (options.get('expandresults).isDefined)
       EXPANDRESULTS = options.get('expandresults).mkString.toBoolean 
