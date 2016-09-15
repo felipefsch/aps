@@ -133,7 +133,7 @@ object Benchmark {
       if (Args.INVIDXPREFETCH) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
         bw.flush()
-        execTimeAvg(algorithms.InvIdxFetchPreFilt.main(args), Args.nExecs, bw, writeAll)
+        execTimeAvg(algorithms.InvIdxPreFetch.main(args), Args.nExecs, bw, writeAll)
       }      
       
       if (Args.INVIDXPRE) {
@@ -153,6 +153,12 @@ object Benchmark {
         bw.flush()
         execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, bw, writeAll)
       }
+      
+      if (Args.INVIDXPREFETCH_C) {
+        bw.append("###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
+        bw.flush()
+        execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, bw, writeAll)
+      }      
       
       now = Calendar.getInstance()
       hour = now.get(Calendar.HOUR)

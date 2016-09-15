@@ -18,6 +18,7 @@ object Args {
   var INVIDXPRE = true
   var INVIDXFETCH = true
   var INVIDXPREFETCH = true
+  var INVIDXPREFETCH_C = true  
   var BENCHMARK = true
   
   var PREGROUP = false
@@ -31,8 +32,11 @@ object Args {
   var distinctElements = 0
   var dataSetPath = ""
   var threshold = 0.toLong
+  var threshold_c = 0.toLong
   var normThreshold = 0.0
+  var normThreshold_c = 0.0  
   var minOverlap = 0.toLong
+  var minOverlap_c = 0.toLong  
   var nPools = 0
   var selectivity = 0.0
   var poolIntersection = 0.0
@@ -86,8 +90,10 @@ options:
    --invidxpre        BOOL : run inverted index prefix filtering
    --invidxfetch      BOOL : run inverted index fetching IDs
    --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
+   --invidxprefetch_c BOOL : prefix filtering fetch ID with near duplicates
    --benchmark        BOOL : run benchmarking (false dont run any approach)
    --pregroup         BOOL : group duplicates before checking for similars
+   --threshold_c      N.M  : similarity threshold for near duplicates
    --nearduplicates   BOOL : search first for near duplicates
    --duplicatesInput  PATH : folder with part-xxxxx files with similar rankings
   """
@@ -189,11 +195,15 @@ options:
         case "--invidxfetch" :: value :: tail =>
                                nextOption(map ++ Map('invidxfetch -> value.toBoolean), tail)  
         case "--invidxprefetch" :: value :: tail =>
-                               nextOption(map ++ Map('invidxprefetch -> value.toBoolean), tail)  
+                               nextOption(map ++ Map('invidxprefetch -> value.toBoolean), tail)
+        case "--invidxprefetch_c" :: value :: tail =>
+                               nextOption(map ++ Map('invidxprefetch_c -> value.toBoolean), tail)                               
         case "--elementsplit" :: value :: tail =>
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
         case "--pregroup" :: value :: tail =>
                                nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)
+        case "--threshold_c" :: value :: tail =>
+                               nextOption(map ++ Map('threshold_c -> value.toDouble), tail)                               
         case "--duplicatesInput" :: value :: tail =>
                                nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)                               
         case "--nearduplicates" :: value :: tail =>
@@ -245,6 +255,12 @@ options:
       threshold = Footrule.denormalizeThreshold(k, normThreshold)
       minOverlap = Footrule.getMinCommonElements(Args.k, normThreshold)
     }
+    
+    if (options.get('threshold_c).isDefined) {
+      normThreshold_c = options.get('threshold_c).mkString.toDouble
+      threshold_c = Footrule.denormalizeThreshold(k, normThreshold_c)
+      minOverlap_c = Footrule.getMinCommonElements(Args.k, normThreshold_c)
+    }    
       
     if (options.get('selectivity).isDefined)
       selectivity = options.get('selectivity).mkString.toDouble
@@ -324,6 +340,9 @@ options:
     if (options.get('invidxprefetch).isDefined)
       INVIDXPREFETCH = options.get('invidxprefetch).mkString.toBoolean
 
+    if (options.get('invidxprefetch_c).isDefined)
+      INVIDXPREFETCH_C = options.get('invidxprefetch_c).mkString.toBoolean
+      
     if (options.get('elementsplit).isDefined)
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean
       

@@ -23,6 +23,9 @@ object Config {
             .set("spark.executor.instances", Args.executors)
             .set("spark.dynamicAllocation.enabled", Args.dynamicAllocation)
     
-    return new SparkContext(conf)
+    val sc = new SparkContext(conf)
+    //sc.setLogLevel("ERROR")                        
+            
+    return sc
   }
 }

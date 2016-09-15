@@ -60,11 +60,9 @@ object NearDuplicates {
     
     // ids2 always as the smaller
     if (ids1.size < ids2.size) {
+      ids1 = ids2      
       ids2 = aux
-      ids1 = ids2
     }
-    
-
     
     // Check if all elements from smaller contained on bigger
     var isSubset = true    
@@ -72,9 +70,6 @@ object NearDuplicates {
       if (!ids1.contains(i))
         isSubset = false
     }
-    
-    /*if (isSubset)
-      println("id1: " + ids1.mkString(":") + " id2: " + ids2.mkString(":"))*/
 
     return isSubset
   }
@@ -90,50 +85,39 @@ object NearDuplicates {
   : RDD[(String, Array[String])] = {
     // IDs to be removed from input dataset since they are already results    
     var similarIDs = similars.flatMap(x => Array(x._1, x._2)).distinct().map(x => (x, Array[String]()))
-    //Store.rdd("output/similarIDs", similarIDs, true, true)
-    //Store.rdd("output/allRankings", allRankings, true, true)
-    //Store.rdd("output/similars", similars, true, true)
     
     // Input without IDs of similar rankings
     var filteredInput = allRankings.union(similarIDs)
                                    .reduceByKey((a, b) => Array[String]())
-                                   .filter(f => !f._2.isEmpty)
-    
-    //Store.rdd("output/filteredInput", filteredInput, true, true)                                   
+                                   .filter(f => !f._2.isEmpty)                                 
                                    
     // Grouped sets
     var grouped = similars.reduceByKey((a,b) => (a.concat(":").concat(b)))
                           .map(x => getOrderedConcatenation(x))
-                          .map(x => (x, 0))    
-                                
-    //Store.rdd("output/grouped", grouped, true, true)                            
+                          .map(x => (x, 0))                           
     
     // Cartesian product necessary to search for subsets. Get only IDs without tag
     var cartesian = CartesianProduct.orderedWithoutSelf(grouped)
                                     .map(x => (x._1._1, x._2._1))
-    
+
     // Pairs where one element is subset of the others
-    var filtered = cartesian.filter(x =>  isSubset(x)) //x._1.contains(x._2) || x._2.contains(x._1))
-    //Store.rdd("output/filtered", filtered, true, true)     
+    var filtered = cartesian.filter(x =>  isSubset(x)) //x._1.contains(x._2) || x._2.contains(x._1))     
      
     // The small ones should be removed from "grouped", which will be the result then
-    var subsets = filtered.map(x => getSmallestSubset(x))    
-    //Store.rdd("output/subsets", subsets, true, true)    
+    var subsets = filtered.map(x => getSmallestSubset(x))        
     
     // Unite tagged subsets with grouped entries in order to remove the subsets
     // reducing the number of necessary comparisons afterwards
     var nearDuplicates = subsets.union(grouped)
                                 .reduceByKey((a,b) => a + b)
                                 .filter(f => f._2 == 0)
-                                .map(x => x._1)
-    //Store.rdd("output/nearDuplicates", nearDuplicates, true, true)                                
+                                .map(x => x._1)                              
                               
                                 
     // Use first ID of merged IDs to fetch ranking to be used as representative to the set
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
                                           .join(allRankings)
-                                          .map(x => (x._1.concat(x._2._1), x._2._2))
-    //Store.rdd("output/duplicatesIdFetch", duplicatesIdFetch, true, true)                                             
+                                          .map(x => (x._1.concat(x._2._1), x._2._2))                                             
                                           
     var inputWithNearDuplicates = filteredInput.union(duplicatesIdFetch)
     
