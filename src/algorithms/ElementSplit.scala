@@ -101,16 +101,17 @@ object ElementSplit {
         // Compute final distance and filter on threshold       
         var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
                                             .filter(x => x._2 <= Args.threshold)                                       
-
-      
+        
         if (Args.PREGROUP) {
           var duplicates = Duplicates.getDuplicates(ranksArray)
           var rddUnion = similarRanks.union(duplicates)
-          similarRanks = Duplicates.expandDuplicates(rddUnion)
+          if (Args.EXPANDDUPLICATES)
+            similarRanks = Duplicates.expandDuplicates(rddUnion)
+          else
+            similarRanks = rddUnion
         }
-
-        // Saving output locally on each node     
-        Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)        
+  
+        Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)    
         
       } finally {
         sc.stop()

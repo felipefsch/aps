@@ -41,11 +41,13 @@ object InvIdxPreFilt {
       if (Args.PREGROUP) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
-        similarRanks = Duplicates.expandDuplicates(rddUnion)
-      }      
-      
-      // Saving output locally on each node
-      Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)
+        if (Args.EXPANDDUPLICATES)
+          similarRanks = Duplicates.expandDuplicates(rddUnion)
+        else
+          similarRanks = rddUnion
+      }
+
+      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
       
     } finally {
       sc.stop()

@@ -111,6 +111,7 @@ object Benchmark {
       bw.append("-k: " + Args.k + "\n")      
       bw.append("-n: " + Args.n + "\n")
       bw.append("-threshold: " + Args.normThreshold + "\n")
+      bw.append("-threshold_c: " + Args.normThreshold_c + "\n")
       bw.append("-input data: " + Args.input + "\n")
       bw.append("-store final results: " + Args.STORERESULTS + "\n")      
       bw.append("-pre group duplicates: " + Args.PREGROUP + "\n")

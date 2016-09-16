@@ -58,6 +58,7 @@ object Store {
    * 
    * Store RDD to defined path and count its elements if flag set to true
    */
+  @deprecated
   def rdd[T1, T2](
       path: String,
       allRanks: RDD[(T1, Array[T2])],

@@ -8,7 +8,7 @@ object Args {
   var COUNT = false
   var CREATEDATA = false
   var STORERESULTS = true
-  var EXPANDRESULTS = false
+  var EXPANDDUPLICATES = false
   
   var WRITEALL = true
   var INIT = true
@@ -68,8 +68,7 @@ options:
    --config           PATH : path to XML configuration file
    --input            PATH : input dataset path
    --output           PATH : result output path
-   --storeresults     BOOL : store final results
-   --expandresults    BOOL : expand resulting IDs with its rankings 
+   --storeresults     BOOL : store final results 
    --datasetOutput    PATH : dataset output path (for synthetic data creation)
    --benchmarkOutput  PATH : benchmarking results output path
    --count            BOOL : count number of result pairs
@@ -93,6 +92,7 @@ options:
    --invidxprefetch_c BOOL : prefix filtering fetch ID with near duplicates
    --benchmark        BOOL : run benchmarking (false dont run any approach)
    --pregroup         BOOL : group duplicates before checking for similars
+   --expandduplicates BOOL : expand duplicate IDs with its rankings
    --threshold_c      N.M  : similarity threshold for near duplicates
    --nearduplicates   BOOL : search first for near duplicates
    --duplicatesInput  PATH : folder with part-xxxxx files with similar rankings
@@ -154,8 +154,8 @@ options:
                                nextOption(map ++ Map('output -> value.toString()), tail)
         case "--storeresults" :: value :: tail =>
                                nextOption(map ++ Map('storeresults -> value.toBoolean), tail)
-        case "--expandresults" :: value :: tail =>
-                               nextOption(map ++ Map('expandresults -> value.toBoolean), tail)                               
+        case "--expandduplicates" :: value :: tail =>
+                               nextOption(map ++ Map('expandduplicates -> value.toBoolean), tail)                               
         case "--datasetOutput" :: value :: tail =>
                                nextOption(map ++ Map('datasetOutput -> value.toString()), tail)
         case "--benchmarkOutput" :: value :: tail =>
@@ -355,8 +355,8 @@ options:
     if (options.get('duplicatesInput).isDefined)
       duplicatesInput = options.get('duplicatesInput).mkString        
       
-    if (options.get('expandresults).isDefined)
-      EXPANDRESULTS = options.get('expandresults).mkString.toBoolean 
+    if (options.get('expandduplicates).isDefined)
+      EXPANDDUPLICATES = options.get('expandduplicates).mkString.toBoolean 
       
     if (options.get('storeresults).isDefined)
       STORERESULTS = options.get('storeresults).mkString.toBoolean       

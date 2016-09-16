@@ -26,10 +26,7 @@ object BruteForce {
     
     try {
       // Load also sets ranking size k  
-      var ranksArray = Load.loadData(input, sc, Args.partitions)         
-      
-      if (Args.NEARDUPLICATES)
-        ranksArray = NearDuplicates.getNearDuplicates(Args.duplicatesInput, ranksArray, sc, Args.partitions)
+      var ranksArray = Load.loadData(input, sc, Args.partitions)
       
       if (Args.PREGROUP)
         ranksArray = Duplicates.findDuplicates(ranksArray, output)        
@@ -45,10 +42,13 @@ object BruteForce {
       if (Args.PREGROUP) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
-        similarRanks = Duplicates.expandDuplicates(rddUnion)        
+        if (Args.EXPANDDUPLICATES)
+          similarRanks = Duplicates.expandDuplicates(rddUnion)
+        else
+          similarRanks = rddUnion
       }
 
-      Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, Args.EXPANDRESULTS)
+      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
       
     } finally {
       // Force stopping Spark Context before exiting the algorithm 

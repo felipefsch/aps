@@ -14,7 +14,10 @@ object Fetch {
    * 
    * Output:
    * -((ID1, [Elements]), (ID2, [Elements])), Distance)
+   * 
+   * NOT WORKING PROPERLY!!! Should be rewritten
    */
+  @deprecated
   def fetchIds[T1, T2](rdd: RDD[(T1, Array[T2])], ids: RDD[((T1, T1), Long)]) 
   : RDD[(((T1, Array[T2]), (T1, Array[T2])), Long)] = {
     return ids.map(x =>

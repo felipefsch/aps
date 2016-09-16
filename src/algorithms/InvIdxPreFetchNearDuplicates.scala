@@ -23,7 +23,7 @@ object InvIdxPreFetchNearDuplicates {
       
       var similarRanks = InvIdxPreFetch.run(ranksWithDuplicates, Args.threshold + Args.threshold_c)
       
-      Store.rdd(output, ranksArray, Args.COUNT, Args.STORERESULTS, similarRanks, false)
+      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
       
 
     } finally {

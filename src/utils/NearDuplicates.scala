@@ -14,8 +14,10 @@ object NearDuplicates {
   private def getOrderedConcatenation(in: (String, String))
   : String = {
     var ids = in._2.split(":") :+ in._1
-    var idsLong = ids.map(x => x.toLong)
-    var sorted = idsLong.sorted
+    // If we convert to Long, we loose the ordering used
+    // to output the similar pairs
+    //var idsLong = ids.map(x => x.toLong)
+    var sorted = ids.sorted
     return sorted.mkString(":")
   }
   
@@ -51,6 +53,19 @@ object NearDuplicates {
         pair._2
     }
     
+  }
+  
+  def getRepresentativeId(ids: String)
+  : String = {
+    return ids.split(":")(0)
+  }
+  
+  def getLongerString(in1: String, in2: String)
+  : String = {
+    if (in1.length() > in2.length())
+      return in1
+    else
+      return in2
   }
   
   def isSubset(in: (String, String)) : Boolean = {
@@ -94,17 +109,36 @@ object NearDuplicates {
     // Grouped sets
     var grouped = similars.reduceByKey((a,b) => (a.concat(":").concat(b)))
                           .map(x => getOrderedConcatenation(x))
-                          .map(x => (x, 0))                           
-    
+                          .map(x => (x, 0))
+             
+    // Group on first ID to get groups of similar pairs, ordering the ids
+    var groupedOnFirst = similars.reduceByKey((a,b) => (a.concat(":").concat(b)))
+                          .map(x => getOrderedConcatenation(x))
+                          .map(x => (getRepresentativeId(x), (x, 0)))                           
+                          
+    // Group on second ID to get groups of similar pairs and ordering the ids
+    var groupedOnSecond = similars.map(x => (x._2, x._1))
+                          .reduceByKey((a,b) => (a.concat(":").concat(b)))
+                          .map(x => getOrderedConcatenation(x))
+                          .map(x => (getRepresentativeId(x), (x, 1)))                          
+                          
+    // Merge grouped IDs by the same representative ranking.
+    // The set of IDs represented is the longest one found, since the others are all subsets
+    // and we get only those present on both grouped, this way removing possible subsets
+    var nearDuplicates = groupedOnFirst.union(groupedOnSecond)
+                          .reduceByKey((a,b) => (getLongerString(a._1, b._1), a._2 + b._2))
+                          .filter(f => f._2._2 > 0)
+                          .map(x => x._2._1)
+
     // Cartesian product necessary to search for subsets. Get only IDs without tag
-    var cartesian = CartesianProduct.orderedWithoutSelf(grouped)
+    /*var cartesian = CartesianProduct.orderedWithoutSelf(grouped)
                                     .map(x => (x._1._1, x._2._1))
 
     // Pairs where one element is subset of the others
-    var filtered = cartesian.filter(x =>  isSubset(x)) //x._1.contains(x._2) || x._2.contains(x._1))     
+    var filtered = cartesian.filter(x =>  x._1.contains(x._2) || x._2.contains(x._1))
      
     // The small ones should be removed from "grouped", which will be the result then
-    var subsets = filtered.map(x => getSmallestSubset(x))        
+    var subsets = filtered.map(x => getSmallestSubset(x))      
     
     // Unite tagged subsets with grouped entries in order to remove the subsets
     // reducing the number of necessary comparisons afterwards
@@ -112,7 +146,7 @@ object NearDuplicates {
                                 .reduceByKey((a,b) => a + b)
                                 .filter(f => f._2 == 0)
                                 .map(x => x._1)                              
-                              
+    Store.rdd("output/nearDuplicates", nearDuplicates, true, true)*/                              
                                 
     // Use first ID of merged IDs to fetch ranking to be used as representative to the set
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
