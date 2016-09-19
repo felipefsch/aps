@@ -19,10 +19,10 @@ object Duplicates {
    */
   def expandDuplicates(similarRanks: RDD[((String, String), Long)])
     : RDD[((String, String), Long)] = {
-    var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":"))    
+    var noDuplicates = similarRanks.filter(x => !x._1._1.contains("=") && !x._1._2.contains("="))    
     
     // Expand those with similar on left side
-    var filteredLeft = similarRanks.filter(x => x._1._1.contains(":") && !x._1._2.equals("duplicates"))
+    var filteredLeft = similarRanks.filter(x => x._1._1.contains("=") && !x._1._2.equals("duplicates"))
     var expandedLeft = filteredLeft.flatMap(
                                 x => x._1._1.split(":").map(
                                     y => 
@@ -62,7 +62,7 @@ object Duplicates {
    */
   def getDuplicates[T](rdd: RDD[(String, Array[T])])
   : RDD[((String, String), Long)] = {
-    return rdd.filter(x => x._1.contains(":")).map(x => ((x._1, "duplicates"), 0.toLong))  
+    return rdd.filter(x => x._1.contains("=")).map(x => ((x._1, "duplicates"), 0.toLong))  
   }
 
   /**
@@ -70,9 +70,9 @@ object Duplicates {
    * -inputRdd: (RankingID, [Elements])
    * -path: the path where to store duplicates
    * Output:
-   * -(RankingID, [Elements])
+   * -(RankingIDs, [Elements])
    * 
-   * Group duplicate rankings
+   * Group duplicate rankings, creating ID as "=ID1:ID2:ID3=" for the group
    */
   def findDuplicates[T1, T2](inputRdd: RDD[(T1, Array[T2])], path: String)
   : RDD[(String, Array[String])] = {
@@ -84,7 +84,7 @@ object Duplicates {
     val grouped = switched.reduceByKey((a,b) => (a.concat(":").concat(b)))  
     
     // Switch back to original key/value format
-    val output = grouped.map(x => (x._2, stringToArray(x._1)))
+    val output = grouped.map(x => ("=".concat(x._2).concat("="), stringToArray(x._1)))
     
     return output
   }

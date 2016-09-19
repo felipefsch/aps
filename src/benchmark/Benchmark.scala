@@ -105,7 +105,7 @@ object Benchmark {
       var minute = now.get(Calendar.MINUTE)
       var day = now.get(Calendar.DATE)
       var month = now.get(Calendar.MONTH) + 1
-      bw.append("\n\n###############################################\n")    
+      bw.append("\n\n###############################################################################\n")    
       bw.append("# Benchmarking started at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
       bw.append("-k: " + Args.k + "\n")      
@@ -116,7 +116,7 @@ object Benchmark {
       bw.append("-store final results: " + Args.STORERESULTS + "\n")      
       bw.append("-pre group duplicates: " + Args.PREGROUP + "\n")
       bw.append("-pre group near duplicates: " + Args.NEARDUPLICATES + "\n")                 
-      bw.append("###############################################\n\n")
+      bw.append("###############################################################################\n\n")
       bw.flush()      
       
       if (Args.ELEMENTSPLIT) {
@@ -166,10 +166,10 @@ object Benchmark {
       minute = now.get(Calendar.MINUTE)
       day = now.get(Calendar.DATE)
       month = now.get(Calendar.MONTH) + 1
-      bw.append("\n\n###############################################\n")    
+      bw.append("\n\n###############################################################################\n")    
       bw.append("# Endet at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
-      bw.append("###############################################\n")
+      bw.append("###############################################################################\n")
       bw.flush()            
       
       bw.close()
