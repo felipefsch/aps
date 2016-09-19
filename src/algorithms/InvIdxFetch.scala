@@ -25,7 +25,7 @@ object InvIdxFetch {
       var ranksArray =  Load.loadData(input, sc, Args.partitions) 
            
       if (Args.PREGROUP)
-        ranksArray = Duplicates.findDuplicates(ranksArray, output)    
+        ranksArray = Duplicates.groupDuplicates(ranksArray, output)    
       
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, Args.k)      
       val flatInvIdx = invertedIndex.flatMap(x => x._2)

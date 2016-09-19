@@ -75,7 +75,7 @@ object ElementSplit {
         var ranksArray = Load.loadData(input, sc, Args.partitions)
         
         if (Args.PREGROUP)
-          ranksArray = Duplicates.findDuplicates(ranksArray, output)
+          ranksArray = Duplicates.groupDuplicates(ranksArray, output)
         
         if (Args.DEBUG) {
           println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
