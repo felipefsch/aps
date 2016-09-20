@@ -23,19 +23,17 @@ object InvIdxPreFetchNearDuplicates {
       }
 
       var nearDuplicates = InvIdxPreFetch.run(ranksArray, Args.threshold_c)                                                                                      
-      ranksArray = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
+      var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
       
-      var similarRanks = InvIdxPreFetch.run(ranksArray, Args.threshold + Args.threshold_c)
+      var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, Args.threshold + Args.threshold_c)
       similarRanks = NearDuplicates.filterFalseCandidates(similarRanks)
-      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray)      
+      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray)
       
       // Add near duplicates to result set
       similarRanks = similarRanks.union(nearDuplicates)
             
-      if (Args.GROUPDUPLICATES) {
-         var rddUnion = similarRanks.union(duplicates)          
-         similarRanks = Duplicates.expandDuplicates(rddUnion)         
-      }      
+      var rddUnion = similarRanks.union(duplicates)
+      similarRanks = Duplicates.expandDuplicates(rddUnion)
       
       Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)        
  

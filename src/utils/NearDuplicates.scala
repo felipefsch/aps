@@ -94,7 +94,12 @@ object NearDuplicates {
    * -similarRanks: ((ID1:ID2,ID3:ID4), dist)
    * 
    * Output:
-   * -(ID1,)
+   * -((ID1,ID3), dist), ((ID1,ID4), dist), ((ID2,ID3), dist), ((ID2,ID4), dist)
+   * 
+   * Expand near duplicate pairs into its actual pairs
+   * !!! Real distance "dist" will be wrong since distance considered only between
+   * representatives!!! Expand ALL ONLY IF distance <= theta - theta_c, so that
+   * is guaranteed the distance of all possible pairs of the near duplicates < theta
    */
   def expandAll(similarRanks: RDD[((String, String), Long)])
   : RDD[((String, String), Long)] = {
@@ -131,12 +136,30 @@ object NearDuplicates {
     return expandedRight.union(expandedLeftOnly).distinct()
   }
   
+  /**
+   * Input:
+   * -similarRanks: pairs of similar rankings
+   * 
+   * Output:
+   * -pairs of similar rankings, excluding those that are not near
+   * duplicates (which requires further processing) or have distance
+   * greater than theta
+   */
   def filterFalseCandidates(similarRanks: RDD[((String, String),Long)])
   : RDD[((String, String),Long)] = {
     // Remove pairs that have no near duplicates and higher threshold than desired
     return similarRanks.filter(f => f._2 < Args.threshold || f._1._1.contains(":") || f._1._2.contains(":"))
   }
   
+  /**
+   * Input:
+   * -similarRanks: similar ranking pairs with max distance theta + theta_c
+   * -allRanks: rankings without near duplicates grouping (and with duplicates grouping
+   * if that is the case)
+   * 
+   * Output:
+   * -rankings pairs with maximum distance theta
+   */
   def expandNearDuplicates(similarRanks: RDD[((String, String), Long)],
                            allRanks: RDD[(String, Array[String])])
   : RDD[((String, String), Long)] = {   
@@ -153,9 +176,11 @@ object NearDuplicates {
     
     var expanded = expandAll(toExpand)
             
-    var toCheck = similarRanks.filter(f => f._2 > maxDist)
+    var toCheck = similarRanks.filter(f => f._2 > maxDist && (f._1._1.contains(":") || f._1._2.contains(":")))
+    
+    // TODO: check the "toCheck" RDD to confirm distances
         
-    return expanded.union(toCheck)
+    return noDuplicates.union(expanded).union(toCheck)
   }
   
   /**
