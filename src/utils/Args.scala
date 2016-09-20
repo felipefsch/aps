@@ -21,8 +21,8 @@ object Args {
   var INVIDXPREFETCH_C = true  
   var BENCHMARK = true
   
-  var PREGROUP = false
-  var NEARDUPLICATES = false
+  var GROUPDUPLICATES = false
+  var GROUPNEARDUPLICATES = false
   
   var benchmarkOutput = ""
   
@@ -58,44 +58,44 @@ classes:
    benchmark.Benchmark
    benchmark.SyntheticDataSet
 options: 
-   --k                N    : ranking size
-   --n                N    : number of rankings
-   --threshold        N.M  : normalized similarity threshold
-   --selectivity      N.M  : selectivity percentage
-   --poolIntersection N.M  : intersection percentage
-   --nPools           N    : number of pools for intersecting rankings
-   --nElements        N    : number of distinct elements
-   --config           PATH : path to XML configuration file
-   --input            PATH : input dataset path
-   --output           PATH : result output path
-   --storeresults     BOOL : store final results 
-   --datasetOutput    PATH : dataset output path (for synthetic data creation)
-   --benchmarkOutput  PATH : benchmarking results output path
-   --count            BOOL : count number of result pairs
-   --debug            BOOL : debug mode
-   --profiling        BOOL : profiling mode
-   --createData       BOOL : create synthetic dataset
-   --partitions       N    : number of partitions for repartitioning
-   --executors        N    : number of executors on local machine
-   --cores            N    : number of cores per executor
-   --dynamicAlloc     BOOL : dynamically allocate executors
-   --masterIp         IP   : master node IP
-   --nExecs           N    : number of executions of each algorithm
-   --writeAll         BOOL : write execution time for each execution
-   --init             BOOL : run Spark context initialization
-   --bruteforce       BOOL : run brute force
-   --elementsplit     BOOL : run elementsplit
-   --invidx           BOOL : run inverted index
-   --invidxpre        BOOL : run inverted index prefix filtering
-   --invidxfetch      BOOL : run inverted index fetching IDs
-   --invidxprefetch   BOOL : run inverted index prefix filtering fetch ID
-   --invidxprefetch_c BOOL : prefix filtering fetch ID with near duplicates
-   --benchmark        BOOL : run benchmarking (false dont run any approach)
-   --pregroup         BOOL : group duplicates before checking for similars
-   --expandduplicates BOOL : expand duplicate IDs with its rankings
-   --threshold_c      N.M  : similarity threshold for near duplicates
-   --nearduplicates   BOOL : search first for near duplicates
-   --duplicatesInput  PATH : folder with part-xxxxx files with similar rankings
+   --k                    N    : ranking size
+   --n                    N    : number of rankings
+   --threshold            N.M  : normalized similarity threshold
+   --selectivity          N.M  : selectivity percentage
+   --poolIntersection     N.M  : intersection percentage
+   --nPools               N    : number of pools for intersecting rankings
+   --nElements            N    : number of distinct elements
+   --config               PATH : path to XML configuration file
+   --input                PATH : input dataset path
+   --output               PATH : result output path
+   --storeresults         BOOL : store final results 
+   --datasetOutput        PATH : dataset output path (for synthetic data creation)
+   --benchmarkOutput      PATH : benchmarking results output path
+   --count                BOOL : count number of result pairs
+   --debug                BOOL : debug mode
+   --profiling            BOOL : profiling mode
+   --createData           BOOL : create synthetic dataset
+   --partitions           N    : number of partitions for repartitioning
+   --executors            N    : number of executors on local machine
+   --cores                N    : number of cores per executor
+   --dynamicAlloc         BOOL : dynamically allocate executors
+   --masterIp             IP   : master node IP
+   --nExecs               N    : number of executions of each algorithm
+   --writeAll             BOOL : write execution time for each execution
+   --init                 BOOL : run Spark context initialization
+   --bruteforce           BOOL : run brute force
+   --elementsplit         BOOL : run elementsplit
+   --invidx               BOOL : run inverted index
+   --invidxpre            BOOL : run inverted index prefix filtering
+   --invidxfetch          BOOL : run inverted index fetching IDs
+   --invidxprefetch       BOOL : run inverted index prefix filtering fetch ID
+   --invidxprefetch_c     BOOL : prefix filtering fetch ID with near duplicates
+   --benchmark            BOOL : run benchmarking (false dont run any approach)
+   --groupduplicates      BOOL : group duplicates before checking for similars
+   --expandduplicates     BOOL : expand duplicate IDs with its rankings
+   --threshold_c          N.M  : similarity threshold for near duplicates
+   --groupnearduplicates  BOOL : search first for near duplicates
+   --duplicatesInput      PATH : folder with part-xxxxx files with similar rankings
   """
   
   /**
@@ -200,14 +200,14 @@ options:
                                nextOption(map ++ Map('invidxprefetch_c -> value.toBoolean), tail)                               
         case "--elementsplit" :: value :: tail =>
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
-        case "--pregroup" :: value :: tail =>
+        case "--groupduplicates" :: value :: tail =>
                                nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)
         case "--threshold_c" :: value :: tail =>
                                nextOption(map ++ Map('threshold_c -> value.toDouble), tail)                               
         case "--duplicatesInput" :: value :: tail =>
                                nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)                               
-        case "--nearduplicates" :: value :: tail =>
-                               nextOption(map ++ Map('nearduplicates -> value.toBoolean), tail)                               
+        case "--groupnearduplicates" :: value :: tail =>
+                               nextOption(map ++ Map('groupnearduplicates -> value.toBoolean), tail)                               
         case option :: tail => println("Unknown option " + option + "\n" + usage)
                                sys.exit(1) 
       }
@@ -347,10 +347,10 @@ options:
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean
       
     if (options.get('groupduplicates).isDefined)
-      PREGROUP = options.get('groupduplicates).mkString.toBoolean
+      GROUPDUPLICATES = options.get('groupduplicates).mkString.toBoolean
 
-    if (options.get('nearduplicates).isDefined)
-      NEARDUPLICATES = options.get('nearduplicates).mkString.toBoolean   
+    if (options.get('groupnearduplicates).isDefined)
+      GROUPNEARDUPLICATES = options.get('groupnearduplicates).mkString.toBoolean   
       
     if (options.get('duplicatesInput).isDefined)
       duplicatesInput = options.get('duplicatesInput).mkString        

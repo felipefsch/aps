@@ -24,8 +24,8 @@ object InvIdxFetch {
       // Load also sets ranking size k
       var ranksArray =  Load.loadData(input, sc, Args.partitions) 
            
-      if (Args.PREGROUP)
-        ranksArray = Duplicates.groupDuplicates(ranksArray, output)    
+      if (Args.GROUPDUPLICATES)
+        ranksArray = Duplicates.groupDuplicates(ranksArray)    
       
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, Args.k)      
       val flatInvIdx = invertedIndex.flatMap(x => x._2)
@@ -41,7 +41,7 @@ object InvIdxFetch {
       
       var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
             
-      if (Args.PREGROUP) {
+      if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
         if (Args.EXPANDDUPLICATES)

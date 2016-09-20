@@ -26,7 +26,7 @@ object InvIdxPreFetch {
   def run(in: RDD[(String, Array[String])], threshold: Long)
   : RDD[((String, String), Long)] = {
     var prefixSize = Footrule.getPrefixSize(Args.k, threshold)
-          
+            
     val invertedIndex = InvertedIndex.getInvertedIndexIDs(in, prefixSize.toInt)      
     
     val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)      
@@ -55,12 +55,12 @@ object InvIdxPreFetch {
       // Load also sets ranking size k
       var ranksArray =  Load.loadData(input, sc, Args.partitions)   
 
-      if (Args.PREGROUP)
-        ranksArray = Duplicates.groupDuplicates(ranksArray, output)          
+      if (Args.GROUPDUPLICATES)
+        ranksArray = Duplicates.groupDuplicates(ranksArray)          
            
       var similarRanks = run(ranksArray, Args.threshold)
       
-      if (Args.PREGROUP) {
+      if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
         if (false)

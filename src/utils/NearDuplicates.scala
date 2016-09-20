@@ -94,9 +94,9 @@ object NearDuplicates {
    * -rdd: pairs of similar rankings (ID1, ID2)
    * 
    * Output:
-   * -groupedIds: group them into clusters, smallest ID representing the group
+   * -groupedIds: group them into clusters, smallest ID elements representing the group
    */
-  def getNearDuplicates(similars: RDD[(String, String)], allRankings: RDD[(String, Array[String])])
+  def groupNearDuplicates(similars: RDD[(String, String)], allRankings: RDD[(String, Array[String])])
   : RDD[(String, Array[String])] = {
     // IDs to be removed from input dataset since they are already results    
     var similarIDs = similars.flatMap(x => Array(x._1, x._2)).distinct().map(x => (x, Array[String]()))
@@ -128,25 +128,7 @@ object NearDuplicates {
     var nearDuplicates = groupedOnFirst.union(groupedOnSecond)
                           .reduceByKey((a,b) => (getLongerString(a._1, b._1), a._2 + b._2))
                           .filter(f => f._2._2 > 0)
-                          .map(x => x._2._1)
-
-    // Cartesian product necessary to search for subsets. Get only IDs without tag
-    /*var cartesian = CartesianProduct.orderedWithoutSelf(grouped)
-                                    .map(x => (x._1._1, x._2._1))
-
-    // Pairs where one element is subset of the others
-    var filtered = cartesian.filter(x =>  x._1.contains(x._2) || x._2.contains(x._1))
-     
-    // The small ones should be removed from "grouped", which will be the result then
-    var subsets = filtered.map(x => getSmallestSubset(x))      
-    
-    // Unite tagged subsets with grouped entries in order to remove the subsets
-    // reducing the number of necessary comparisons afterwards
-    var nearDuplicates = subsets.union(grouped)
-                                .reduceByKey((a,b) => a + b)
-                                .filter(f => f._2 == 0)
-                                .map(x => x._1)                              
-    Store.rdd("output/nearDuplicates", nearDuplicates, true, true)*/                              
+                          .map(x => x._2._1)                            
                                 
     // Use first ID of merged IDs to fetch ranking to be used as representative to the set
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
@@ -161,6 +143,6 @@ object NearDuplicates {
   def getNearDuplicates(duplicatesDir: String, allInputs: RDD[(String, Array[String])], sc: SparkContext, partitions: Int)
   : RDD[(String, Array[String])] = {    
     var similars = Load.loadSimilars(duplicatesDir, sc, partitions)
-    return getNearDuplicates(similars, allInputs)
+    return groupNearDuplicates(similars, allInputs)
   }
 }

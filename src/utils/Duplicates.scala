@@ -74,7 +74,7 @@ object Duplicates {
    * 
    * Group duplicate rankings, creating ID as "=ID1:ID2:ID3=" for the group
    */
-  def groupDuplicates[T1, T2](inputRdd: RDD[(T1, Array[T2])], path: String)
+  def groupDuplicates[T1, T2](inputRdd: RDD[(T1, Array[T2])])
   : RDD[(String, Array[String])] = {
     
     // Transform array into string for easier merging

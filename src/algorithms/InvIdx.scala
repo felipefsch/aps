@@ -25,8 +25,8 @@ object InvIdx {
       // Load also sets ranking size k
       var ranksArray = Load.loadData(input, sc, Args.partitions) 
       
-      if (Args.PREGROUP)
-        ranksArray = Duplicates.groupDuplicates(ranksArray, output)      
+      if (Args.GROUPDUPLICATES)
+        ranksArray = Duplicates.groupDuplicates(ranksArray)      
        
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, Args.k)
       
@@ -37,7 +37,7 @@ object InvIdx {
       // Move distinct() to previous lines to avoid unnecessary computation
       var similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
             
-      if (Args.PREGROUP) {
+      if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
         if (Args.EXPANDDUPLICATES)
