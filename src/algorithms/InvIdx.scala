@@ -40,10 +40,7 @@ object InvIdx {
       if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
-        if (Args.EXPANDDUPLICATES)
-          similarRanks = Duplicates.expandDuplicates(rddUnion)
-        else
-          similarRanks = rddUnion
+        similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
       Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)

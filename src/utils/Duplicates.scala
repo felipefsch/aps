@@ -23,6 +23,7 @@ object Duplicates {
     
     // Expand those with similar on left side
     var filteredLeft = similarRanks.filter(x => x._1._1.contains("=") && !x._1._2.equals("duplicates"))
+ 
     var expandedLeft = filteredLeft.flatMap(
                                 x => x._1._1.split("=").map(
                                     y => 
@@ -32,11 +33,14 @@ object Duplicates {
                                         ((x._1._2, y), x._2)
                                 )
                               )  
+                              
+    // Entries expanded on left side of ID pair with nothing to be expanded on right side
     var expandedLeftOnly = expandedLeft.filter(x => !x._1._2.contains("="))
     
     // Expand those with similar on right side
-    var filteredRight = similarRanks.filter(x => x._1._2.contains("="))
-                                       .union(expandedLeft.filter(x => x._1._2.contains("=")))
+    var filteredRight = similarRanks.filter(x => x._1._2.contains("=") && !x._1._1.contains("="))
+                                    .union(expandedLeft.filter(x => x._1._2.contains("=")))
+                                   
     var expandedRight = filteredRight.flatMap(
                                 x => x._1._2.split("=").map(
                                     y => 
@@ -46,7 +50,6 @@ object Duplicates {
                                         ((x._1._1, y), x._2)
                                 )
                               )
-    
      
     // Expand duplicates, i.e., those with distance 0
     var filtered = similarRanks.filter(x => x._1._2.equals("duplicates"))
@@ -72,11 +75,10 @@ object Duplicates {
    * Output:
    * -(RankingIDs, [Elements])
    * 
-   * Group duplicate rankings, creating ID as "=ID1:ID2:ID3=" for the group
+   * Group duplicate rankings, creating ID as "ID1=ID2=ID3" for the group
    */
-  def groupDuplicates[T1, T2](inputRdd: RDD[(T1, Array[T2])])
+  def groupDuplicates[T1, T2](inputRdd: RDD[(String, Array[String])])
   : RDD[(String, Array[String])] = {
-    
     // Transform array into string for easier merging
     val switched = inputRdd.map(x => (x._2.mkString(":"), x._1.toString()))
     

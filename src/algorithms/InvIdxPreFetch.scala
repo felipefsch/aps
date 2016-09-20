@@ -63,10 +63,7 @@ object InvIdxPreFetch {
       if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
-        if (false)
-          similarRanks = Duplicates.expandDuplicates(rddUnion)
-        else
-          similarRanks = rddUnion
+        similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
       Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)

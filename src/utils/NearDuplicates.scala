@@ -91,10 +91,82 @@ object NearDuplicates {
   
   /**
    * Input:
-   * -rdd: pairs of similar rankings (ID1, ID2)
+   * -similarRanks: ((ID1:ID2,ID3:ID4), dist)
    * 
    * Output:
-   * -groupedIds: group them into clusters, smallest ID elements representing the group
+   * -(ID1,)
+   */
+  def expandAll(similarRanks: RDD[((String, String), Long)])
+  : RDD[((String, String), Long)] = {
+    // Expand those with similar on left side
+    var filteredLeft = similarRanks.filter(x => x._1._1.contains(":"))
+ 
+    var expandedLeft = filteredLeft.flatMap(
+                                x => x._1._1.split(":").map(
+                                    y => 
+                                      if (y < x._1._2 || x._1._2.contains(":"))
+                                        ((y, x._1._2), x._2)
+                                      else
+                                        ((x._1._2, y), x._2)
+                                )
+                              )  
+                              
+    // Entries expanded on left side of ID pair with nothing to be expanded on right side
+    var expandedLeftOnly = expandedLeft.filter(x => !x._1._2.contains(":"))
+    
+    // Expand those with similar on right side
+    var filteredRight = similarRanks.filter(x => x._1._2.contains(":") && !x._1._1.contains(":"))
+                                    .union(expandedLeft.filter(x => x._1._2.contains(":")))
+                                   
+    var expandedRight = filteredRight.flatMap(
+                                x => x._1._2.split(":").map(
+                                    y => 
+                                      if (y < x._1._1)
+                                        ((y, x._1._1), x._2)
+                                      else 
+                                        ((x._1._1, y), x._2)
+                                )
+                              )
+                              
+    return expandedRight.union(expandedLeftOnly).distinct()
+  }
+  
+  def filterFalseCandidates(similarRanks: RDD[((String, String),Long)])
+  : RDD[((String, String),Long)] = {
+    // Remove pairs that have no near duplicates and higher threshold than desired
+    return similarRanks.filter(f => f._2 < Args.threshold || f._1._1.contains(":") || f._1._2.contains(":"))
+  }
+  
+  def expandNearDuplicates(similarRanks: RDD[((String, String), Long)],
+                           allRanks: RDD[(String, Array[String])])
+  : RDD[((String, String), Long)] = {   
+    var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":"))    
+    
+    // Pairs containing near duplicates
+    var withNearDuplicates = similarRanks.filter(f => f._1._1.contains(":") || f._1._2.contains(":"))
+
+    // theta - theta_c
+    var maxDist = Footrule.denormalizeThreshold(Args.k, Args.normThreshold - Args.normThreshold_c)
+
+    // If dist <= theta - theta_c we can be sure that all pairs satisfy dist <= theta
+    var toExpand = withNearDuplicates.filter(f => f._2 <= maxDist)    
+    
+    var expanded = expandAll(toExpand)
+            
+    var toCheck = similarRanks.filter(f => f._2 > maxDist)
+        
+    return expanded.union(toCheck)
+  }
+  
+  /**
+   * Input:
+   * -similars: pairs of similar rankings (ID1, ID2)
+   * -allRankings: all input rankings as (ID, [Elements*])
+   * 
+   * Output:
+   * -groupedIds: group near duplicate rankings (ID1:ID2*, [Elements*]), removing
+   * their IDs from the the set 
+   * 
    */
   def groupNearDuplicates(similars: RDD[(String, String)], allRankings: RDD[(String, Array[String])])
   : RDD[(String, Array[String])] = {
