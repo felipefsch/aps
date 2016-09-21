@@ -173,14 +173,24 @@ object NearDuplicates {
 
     // If dist <= theta - theta_c we can be sure that all pairs satisfy dist <= theta
     var toExpand = withNearDuplicates.filter(f => f._2 <= maxDist)    
-    
     var expanded = expandAll(toExpand)
-            
-    var toCheck = similarRanks.filter(f => f._2 > maxDist && (f._1._1.contains(":") || f._1._2.contains(":")))
     
-    // TODO: check the "toCheck" RDD to confirm distances
+    // If  theta - theta_c < dist <= theta + theta_c, elements from representative might be candidates
+    // or not! Need to fetch real ranking to search for correct distance.
+    // Note that we might have duplicates here (e.g., ID1=ID2 as key)! Input allRanks must have
+    // such entries as IDs as well!
+    var toCheck = similarRanks.filter(f => f._2 > maxDist && (f._1._1.contains(":") || f._1._2.contains(":")))    
+    var expandedToCheck = expandAll(toCheck).map(x => (x._1._1, x._1._2))
+    
+    // Join on rankId1 and transform output to (rankId2, (rankId1, (elements1))
+    val firstJoin = allRanks.join(expandedToCheck).map(x => (x._2._2, (x._1, x._2._1)))
+    // Join on rankId2 and transform output to ((rankId1, elements1), (rankId2, elements2)) 
+    val secondJoin = allRanks.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))
+  
+    var checked = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))      
+    checked = checked.filter(x => x._2 <= Args.threshold)    
         
-    return noDuplicates.union(expanded).union(toCheck)
+    return noDuplicates.union(expanded).union(checked)
   }
   
   /**
