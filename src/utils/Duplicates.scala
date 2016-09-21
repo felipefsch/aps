@@ -57,7 +57,7 @@ object Duplicates {
     var pairs = ids.flatMap(x => CartesianProduct.orderedWithoutSelf(x))
     var expandedDuplicates = pairs.map(x => (x, 0.toLong))
     
-    return expandedDuplicates.union(expandedRight).union(expandedLeftOnly).distinct()
+    return noDuplicates.union(expandedDuplicates).union(expandedRight).union(expandedLeftOnly).distinct()
   }
   
   /**
