@@ -43,7 +43,7 @@ object Args {
   var input = ""
   var output = ""
   var datasetOutput = ""
-  var masterIp = "local"
+  var masterIp = ""
   var duplicatesInput = ""
   
   var partitions = 1

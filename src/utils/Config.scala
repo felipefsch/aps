@@ -16,7 +16,6 @@ object Config {
     val master = Args.masterIp
     
     val conf = new SparkConf()
-            .setMaster(master)
             .setAppName("APS")
             //.set("spark.driver.allowMultipleContexts", "true")
             //.set("spark.executor.cores", Args.cores)
@@ -24,10 +23,13 @@ object Config {
             //.set("spark.executor.instances", Args.executors)
             //.set("spark.dynamicAllocation.enabled", Args.dynamicAllocation)
     
+    if (!Args.masterIp.equals("")) {
+      conf.setMaster(Args.masterIp)
+    }
+    
     val sc = SparkContext.getOrCreate(conf)
-    //sc.setLogLevel("ERROR")                        
-            
-    //var t = SparkContext.getOrCreate(conf)
+    //sc.setLogLevel("ERROR")
+    
     return sc
   }
   
