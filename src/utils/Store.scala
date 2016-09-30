@@ -113,7 +113,7 @@ object Store {
       
     }
     catch {
-      case NonFatal(t) => println("Could not store the amount of RDD elements.")
+      case NonFatal(t) => println("[ERROR] Could not store the amount of RDD elements. " + t.toString() + "\n")
     }
     
   }
@@ -139,7 +139,7 @@ object Store {
             
       }
       catch {
-        case NonFatal(t) => println("Could not output the result.")
+        case NonFatal(t) => println("[ERROR] Could not output the result. " + t.toString() + "\n")
       }
   }  
 }

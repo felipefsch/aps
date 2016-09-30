@@ -49,7 +49,7 @@ object BruteForce {
       
     } finally {
       // Force stopping Spark Context before exiting the algorithm 
-      sc.stop()
+      Config.closeSparkContext(sc)
     }
   }
   

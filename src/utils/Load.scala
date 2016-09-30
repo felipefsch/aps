@@ -92,6 +92,7 @@ object Load {
       if (Args.n > 0) {
         // Take only desired amount of entries
         val filterAmount = filtered.take(Args.n)
+        //filtered = filtered.take(Args.n)
         
         // Convert array to RDD
         filtered = sc.parallelize(filterAmount).repartition(partitions)
@@ -103,8 +104,8 @@ object Load {
     def loadData(path: String, sc: SparkContext, partitions: Int) 
     : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
-      val src = Source.fromFile(path)
-      val line = src.getLines.take(1).mkString      
+      val src = sc.textFile(path)
+      val line = src.take(1).mkString      
       
       var commaSeparated = false      
       if (line.contains(":"))

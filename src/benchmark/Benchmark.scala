@@ -55,6 +55,11 @@ object Benchmark {
   def execTimeAvg[R](block: => R, nExecs: Int, bw: BufferedWriter, writeAll: Boolean): Unit = {
     try {
       var totalExecTime = 0.toLong
+      var now = Calendar.getInstance()
+      var hour = now.get(Calendar.HOUR)
+      var minute = now.get(Calendar.MINUTE)       
+      bw.append("[INFO] Start at: " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n")
+      bw.flush()
       for (i <- 1 to nExecs) {
         var execTime = timeNs(block,bw)
         totalExecTime += execTime
@@ -62,9 +67,13 @@ object Benchmark {
           bw.append("[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
           bw.flush()
       }
+      now = Calendar.getInstance()
+      hour = now.get(Calendar.HOUR)
+      minute = now.get(Calendar.MINUTE)       
       bw.append("[BENCHMARK] "          
           +  "%20d".format(totalExecTime / nExecs)
-          + " ns: AVG Execution time\n\n") 
+          + " ns: AVG Execution time\n")
+      bw.append("[INFO] End at:   " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n\n")          
       bw.flush()
     } catch {
       case e:

@@ -211,12 +211,7 @@ object NearDuplicates {
     // Input without IDs of similar rankings
     var filteredInput = allRankings.union(similarIDs)
                                    .reduceByKey((a, b) => Array[String]())
-                                   .filter(f => !f._2.isEmpty)                                 
-                                   
-    // Grouped sets
-    var grouped = similars.reduceByKey((a,b) => (a.concat(":").concat(b)))
-                          .map(x => getOrderedConcatenation(x))
-                          .map(x => (x, 0))
+                                   .filter(f => !f._2.isEmpty)
              
     // Group on first ID to get groups of similar pairs, ordering the ids
     var groupedOnFirst = similars.reduceByKey((a,b) => (a.concat(":").concat(b)))
@@ -240,7 +235,7 @@ object NearDuplicates {
     // Use first ID of merged IDs to fetch ranking to be used as representative to the set
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
                                           .join(allRankings)
-                                          .map(x => (x._1.concat(x._2._1), x._2._2))                                             
+                                          .map(x => (x._1.concat(x._2._1), x._2._2))
                                           
     var inputWithNearDuplicates = filteredInput.union(duplicatesIdFetch)
     

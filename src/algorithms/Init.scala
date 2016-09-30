@@ -28,7 +28,7 @@ object Init {
       
     val sc = new SparkContext(conf)
     
-    sc.stop()
+    Config.closeSparkContext(sc)
     
     if (Args.DEBUG)
       println("[DEBUG] Spark context initialized!")

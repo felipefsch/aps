@@ -50,7 +50,7 @@ object InvIdxFetch {
       Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
       
     } finally {
-      sc.stop()
+      Config.closeSparkContext(sc)
     }
   }
 }

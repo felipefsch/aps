@@ -17,15 +17,23 @@ object Config {
     
     val conf = new SparkConf()
             .setMaster(master)
-            .setAppName("elementSplit")
-            .set("spark.driver.allowMultipleContexts", "true")
-            .set("spark.executor.cores", Args.cores)
-            .set("spark.executor.instances", Args.executors)
-            .set("spark.dynamicAllocation.enabled", Args.dynamicAllocation)
+            .setAppName("APS")
+            //.set("spark.driver.allowMultipleContexts", "true")
+            //.set("spark.executor.cores", Args.cores)
+            //.set("spark.executor.memory", "8G")
+            //.set("spark.executor.instances", Args.executors)
+            //.set("spark.dynamicAllocation.enabled", Args.dynamicAllocation)
     
-    val sc = new SparkContext(conf)
+    val sc = SparkContext.getOrCreate(conf)
     //sc.setLogLevel("ERROR")                        
             
+    //var t = SparkContext.getOrCreate(conf)
     return sc
+  }
+  
+  def closeSparkContext(sc: SparkContext) {
+    if (sc.isLocal) {
+      sc.stop()
+    }
   }
 }
