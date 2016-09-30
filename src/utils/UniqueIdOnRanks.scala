@@ -26,7 +26,7 @@ object UniqueIdOnRanks {
    */
   def idOnRealDataset(path: String)
   {
-    val sc = Config.getSparkContext(Array[String]())
+    val sc = Config.getSparkContext(Args.masterIp)
     val file = sc.textFile(path)
     val lines = file.map(x => x.split("\n"))
     val indexedLines = lines.zipWithUniqueId()

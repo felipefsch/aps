@@ -16,6 +16,7 @@ import java.io.IOException
 object Store {
   
   var DELDIR = false
+  var DEBUG = false
   
   /**
    * Input:
@@ -132,7 +133,7 @@ object Store {
           FileUtils.deleteDirectory(new File(path)); 
           DELDIR = true
         }
-        if (Args.DEBUG)
+        if (DEBUG)
           rdd.coalesce(1).saveAsTextFile(path)
         else
           rdd.saveAsTextFile(path)

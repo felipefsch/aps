@@ -16,21 +16,15 @@ object Init {
   // Initialize context and so on to improve benchmark precision
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-
-    var master = Args.masterIp
     
     if (Args.DEBUG)
       println("[DEBUG] Initializing Spark context...")
-    
-    val conf = new SparkConf().setMaster(master)
-                    .setAppName("init")
-                    .set("spark.driver.allowMultipleContexts", "true")
       
-    val sc = new SparkContext(conf)
-    
-    Config.closeSparkContext(sc)
+    val sc = Config.getSparkContext(Args.masterIp)
     
     if (Args.DEBUG)
-      println("[DEBUG] Spark context initialized!")
+      println("[DEBUG] Spark context initialized!")    
+    
+    Config.closeSparkContext(sc)
   }
 }

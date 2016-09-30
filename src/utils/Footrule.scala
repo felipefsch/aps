@@ -3,6 +3,8 @@ package utils
 import Array._
 
 object Footrule {
+  
+  var DEBUG = false
    
   /**
    * Defining factorial operation with operator '!'
@@ -77,7 +79,7 @@ object Footrule {
   def partialDistance(in: (Long, Long)) : Long = {
     val dist =  math.abs(in._1 - in._2)
     
-    if (Args.DEBUG) {
+    if (DEBUG) {
       println("Partial distance: " + in._1 + " - " + in._2 + " = " + dist)
     }
     
@@ -103,7 +105,7 @@ object Footrule {
         footrule = footrule + partialDistance(i, elPos)        
     }
     
-    if (Args.DEBUG) {
+    if (DEBUG) {
       println("Ranking size: " + k)
       println("Partial footrule from ranking 1: " + footrule)
     }
@@ -116,7 +118,7 @@ object Footrule {
         footrule = footrule + partialDistance(i, k)        
     }
     
-    if (Args.DEBUG) {
+    if (DEBUG) {
       println("Final footrule: " + footrule)
     }    
 

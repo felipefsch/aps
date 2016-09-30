@@ -16,7 +16,9 @@ import benchmark.Profiling
 object BruteForce {
  
   def main(args: Array[String]): Unit = {
-    val sc = Config.getSparkContext(args)
+    Args.parse(args)
+    
+    val sc = Config.getSparkContext(Args.masterIp)
     
     var normThreshold = Args.normThreshold
     var input = Args.input    
@@ -26,15 +28,15 @@ object BruteForce {
     
     try {
       // Load also sets ranking size k  
-      var ranksArray = Load.loadData(input, sc, Args.partitions)
+      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)
       
       if (Args.GROUPDUPLICATES)
-        ranksArray = Duplicates.groupDuplicates(ranksArray)        
+        ranksArray = Duplicates.groupDuplicates(ranksArray)  
       
       // Cartesian product
-      val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)   
+      val cartesianRanks = CartesianProduct.orderedWithoutSelf(ranksArray)
       
-      val allDistances = cartesianRanks.map(x => Footrule.onLeftIdIndexedArray(x))     
+      val allDistances = cartesianRanks.map(x => Footrule.onLeftIdIndexedArray(x))
       
       //Filter with threshold, keep equal elements
       var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)

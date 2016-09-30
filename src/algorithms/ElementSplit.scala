@@ -63,16 +63,16 @@ object ElementSplit {
     }
   
     def main(args: Array[String]): Unit = {
-      val sc = Config.getSparkContext(args)
+      Args.parse(args)
+      val sc = Config.getSparkContext(Args.masterIp)
       
       val normThreshold = Args.normThreshold
       val input = Args.input    
       val output = Args.output + "ElementSplit"
-
       
       try {
         // Load also sets ranking size k
-        var ranksArray = Load.loadData(input, sc, Args.partitions)
+        var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)
         
         if (Args.GROUPDUPLICATES)
           ranksArray = Duplicates.groupDuplicates(ranksArray)

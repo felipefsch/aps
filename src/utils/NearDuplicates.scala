@@ -145,10 +145,10 @@ object NearDuplicates {
    * duplicates (which requires further processing) or have distance
    * greater than theta
    */
-  def filterFalseCandidates(similarRanks: RDD[((String, String),Long)])
+  def filterFalseCandidates(similarRanks: RDD[((String, String),Long)], threshold: Long)
   : RDD[((String, String),Long)] = {
     // Remove pairs that have no near duplicates and higher threshold than desired
-    return similarRanks.filter(f => f._2 < Args.threshold || f._1._1.contains(":") || f._1._2.contains(":"))
+    return similarRanks.filter(f => f._2 < threshold || f._1._1.contains(":") || f._1._2.contains(":"))
   }
   
   /**
@@ -161,7 +161,11 @@ object NearDuplicates {
    * -rankings pairs with maximum distance theta
    */
   def expandNearDuplicates(similarRanks: RDD[((String, String), Long)],
-                           allRanks: RDD[(String, Array[String])])
+                           allRanks: RDD[(String, Array[String])],
+                           k: Int,
+                           threshold: Long,
+                           normThreshold: Double,
+                           normThreshold_c: Double)
   : RDD[((String, String), Long)] = {   
     var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":"))    
     
@@ -169,7 +173,7 @@ object NearDuplicates {
     var withNearDuplicates = similarRanks.filter(f => f._1._1.contains(":") || f._1._2.contains(":"))
 
     // theta - theta_c
-    var maxDist = Footrule.denormalizeThreshold(Args.k, Args.normThreshold - Args.normThreshold_c)
+    var maxDist = Footrule.denormalizeThreshold(k, normThreshold - normThreshold_c)
 
     // If dist <= theta - theta_c we can be sure that all pairs satisfy dist <= theta
     var toExpand = withNearDuplicates.filter(f => f._2 <= maxDist)    
@@ -188,7 +192,7 @@ object NearDuplicates {
     val secondJoin = allRanks.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))
   
     var checked = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))      
-    checked = checked.filter(x => x._2 <= Args.threshold)    
+    checked = checked.filter(x => x._2 <= threshold)    
         
     return noDuplicates.union(expanded).union(checked)
   }

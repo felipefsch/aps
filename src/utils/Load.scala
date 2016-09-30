@@ -48,8 +48,8 @@ object Load {
       // Split elements
       val ranks = file.map(a => a.split(" "))
       
-      // Set ranking size
-      Args.setK(ranks.first().size - 1)
+      // Set ranking size (When running on yarn, doesn't work. Set K in advance as argument)
+      //Args.setK(ranks.first().size - 1)
       
       // Convert array into tuple of array elements and rank id
       val rankIdTuples = ranks.map(x => arrayToTuple(x))
@@ -71,7 +71,7 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    private def colonSeparated (path: String, sc: SparkContext, partitions: Int)
+    private def colonSeparated (path: String, sc: SparkContext, partitions: Int, k: Int, n: Int)
     : RDD[(String, Array[String])] = {
       // File reading
       val file = sc.textFile(path, partitions)
@@ -82,17 +82,17 @@ object Load {
                            (a.substring(1, a.indexOf(",")),
                             a.substring(a.lastIndexOf("\t") + 1, a.length() - 1)
                              .split(":")
-                             .slice(0, Args.k)
+                             .slice(0, k)
                             )
                            )
                            
       // Filter on ranking size, pruning those that are smaller than desired
-      var filtered = ranks.filter(x => x._2.size == Args.k)
+      var filtered = ranks.filter(x => x._2.size == k)
       
-      if (Args.n > 0) {
+      if (n > 0) {
         // Take only desired amount of entries
-        val filterAmount = filtered.take(Args.n)
-        //filtered = filtered.take(Args.n)
+        val filterAmount = filtered.take(n)
+        //filtered = filtered.take(n)
         
         // Convert array to RDD
         filtered = sc.parallelize(filterAmount).repartition(partitions)
@@ -101,7 +101,7 @@ object Load {
       return filtered
     }
     
-    def loadData(path: String, sc: SparkContext, partitions: Int) 
+    def loadData(path: String, sc: SparkContext, partitions: Int, k: Int, n: Int) 
     : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
       val src = sc.textFile(path)
@@ -112,7 +112,7 @@ object Load {
         commaSeparated = true
       
       if (commaSeparated)
-        return this.colonSeparated(path, sc, partitions)
+        return this.colonSeparated(path, sc, partitions, k, n)
       else
         return this.spaceSeparated(path, sc, partitions)
     }

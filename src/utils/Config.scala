@@ -9,12 +9,8 @@ object Config {
    * Get spark context based on input data. It also parses
    * the used arguments
    */
-  def getSparkContext(args: Array[String]) 
-  : SparkContext = {
-    Args.parse(args)
-    
-    val master = Args.masterIp
-    
+  def getSparkContext(master: String) 
+  : SparkContext = {    
     val conf = new SparkConf()
             .setAppName("APS")
             //.set("spark.driver.allowMultipleContexts", "true")
@@ -23,8 +19,8 @@ object Config {
             //.set("spark.executor.instances", Args.executors)
             //.set("spark.dynamicAllocation.enabled", Args.dynamicAllocation)
     
-    if (!Args.masterIp.equals("")) {
-      conf.setMaster(Args.masterIp)
+    if (!master.equals("")) {
+      conf.setMaster(master)
     }
     
     val sc = SparkContext.getOrCreate(conf)

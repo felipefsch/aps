@@ -6,7 +6,8 @@ import org.apache.spark.rdd.EmptyRDD
 object InvIdxPreFetchNearDuplicates {
   
   def main(args: Array[String]): Unit = {
-    val sc = Config.getSparkContext(args)
+    Args.parse(args)
+    val sc = Config.getSparkContext(Args.masterIp)
  
     var normThreshold = Args.normThreshold
     var input = Args.input    
@@ -14,7 +15,7 @@ object InvIdxPreFetchNearDuplicates {
 
     try {  
       // Load also sets ranking size k
-      var ranksArray =  Load.loadData(input, sc, Args.partitions)
+      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)
 
       var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
       if (Args.GROUPDUPLICATES) {
@@ -26,8 +27,8 @@ object InvIdxPreFetchNearDuplicates {
       var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
       
       var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, Args.threshold + Args.threshold_c)
-      similarRanks = NearDuplicates.filterFalseCandidates(similarRanks)
-      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray)
+      similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, Args.threshold)
+      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, Args.k, Args.threshold, Args.normThreshold, Args.normThreshold_c)
       
       // Add near duplicates to result set
       similarRanks = similarRanks.union(nearDuplicates)
