@@ -16,7 +16,7 @@ object InvIdxPreFetchNearDuplicates {
       // Load also sets ranking size k
       var ranksArray =  Load.loadData(input, sc, Args.partitions)
 
-      var duplicates = sc.emptyRDD[((String, String), Long)]      
+      var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
       if (Args.GROUPDUPLICATES) {
         ranksArray = Duplicates.groupDuplicates(ranksArray)
         duplicates = Duplicates.getDuplicates(ranksArray)        
