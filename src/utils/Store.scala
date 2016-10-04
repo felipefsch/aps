@@ -2,6 +2,14 @@ package utils
 
 import scala.util.control.NonFatal
 
+import org.apache.hadoop.fs._
+import org.apache.hadoop.conf._
+import org.apache.hadoop.io._
+import org.apache.hadoop.mapred._
+import org.apache.hadoop.util._
+import java.util._
+import java.net._
+
 import org.apache.spark.rdd.RDD
 
 import org.apache.commons.io.FileUtils
@@ -31,14 +39,15 @@ object Store {
       path: String,
       rdd: RDD[T],
       count: Boolean,
-      storeRdd: Boolean)
+      storeRdd: Boolean,
+      hdfsUri: String)
   : Unit = {
     if (storeRdd) {
       if (count) {
-        rddToLocalAndCount(path, rdd)
+        rddToLocalAndCount(path, rdd, hdfsUri)
       }
       else {
-        rddToLocalMachine(path, rdd)
+        rddToLocalMachine(path, rdd, hdfsUri)
       }
     }
     else {
@@ -59,7 +68,7 @@ object Store {
    * 
    * Store RDD to defined path and count its elements if flag set to true
    */
-  @deprecated
+  /*@deprecated
   def rdd[T1, T2](
       path: String,
       allRanks: RDD[(T1, Array[T2])],
@@ -75,7 +84,7 @@ object Store {
     else {
       this.rdd(path, similarRanks, count, storeRdd)
     }
-  }
+  }*/
   
   /**
    * Input:
@@ -84,9 +93,9 @@ object Store {
    * 
    * Store RDD and count its elements
    */
-  private def rddToLocalAndCount[T]( path: String, rdd: RDD[T] ) : Unit = {
-    rddToLocalMachine(path, rdd)
-    count(path, rdd)
+  private def rddToLocalAndCount[T]( path: String, rdd: RDD[T], hdfsUri: String) : Unit = {
+    rddToLocalMachine(path, rdd, hdfsUri)
+    count(path, rdd, hdfsUri)
   }
   
   /**
@@ -97,21 +106,36 @@ object Store {
    * This stores file "count.txt" under the specified folder
    * with the number of elements on the provided RDD
    */
-  private def count[T]( path: String, rdd: RDD[T] ) : Unit = {
+  private def count[T]( path: String, rdd: RDD[T], hdfsUri: String = "" ) : Unit = {
+    
+    val count = rdd.count()
     
     var countPath = ""
     if (path.last.compare('/') == 0)
       countPath = path + "count.txt"
     else
       countPath = path + "/count.txt"
-      
-    var file = new File(countPath)
-      
-    try {     
-      val bw = new BufferedWriter(new FileWriter(file, true))      
-      bw.write(rdd.count().toString() + "\n")
-      bw.close()
-      
+    
+    try {
+      if (path.contains("hdfs")) {
+        val conf = new Configuration()
+        val hdfs = org.apache.hadoop.fs.FileSystem.get( new URI( hdfsUri ), conf );
+        val file = new Path(countPath);
+        
+        hdfs.deleteOnExit(file)
+        
+        val os = hdfs.create(file)
+        val br = new BufferedWriter( new OutputStreamWriter( os, "UTF-8" ) );
+        br.write(count.toString() + "\n");
+        br.close();
+        hdfs.close();
+      }
+      else {   
+        var file = new File(countPath)      
+        val bw = new BufferedWriter(new FileWriter(file, true))       
+        bw.write(count.toString() + "\n")
+        bw.close()
+      }
     }
     catch {
       case NonFatal(t) => println("[ERROR] Could not store the amount of RDD elements. " + t.toString() + "\n")
@@ -127,17 +151,31 @@ object Store {
    * This stores files as part-0000... under the specified folder
    * where each line represent one RDD element
    */
-  private def rddToLocalMachine[T]( path: String, rdd: RDD[T] ) : Unit = {
+  private def rddToLocalMachine[T]( path: String, rdd: RDD[T], hdfsUri: String ) : Unit = {
       try {
-        if (new File(path).exists() && !DELDIR) {
-          FileUtils.deleteDirectory(new File(path)); 
-          DELDIR = true
+        // First delete existing directory/file
+        if (path.contains("hdfs")) {
+          val conf = new Configuration()
+          val hdfs = org.apache.hadoop.fs.FileSystem.get( new URI( hdfsUri ), conf );
+          val file = new Path(path);          
+          hdfs.deleteOnExit(file) 
+          hdfs.close()          
         }
-        if (DEBUG)
+        else {        
+          if (new File(path).exists() && !DELDIR) {
+            FileUtils.deleteDirectory(new File(path)); 
+            DELDIR = true
+          }
+        }
+        
+        if (DEBUG) {
           rdd.coalesce(1).saveAsTextFile(path)
-        else
-          rdd.saveAsTextFile(path)
-            
+        }
+        else {
+          if(!rdd.isEmpty) {
+              rdd.saveAsTextFile(path)
+          }
+        }
       }
       catch {
         case NonFatal(t) => println("[ERROR] Could not output the result. " + t.toString() + "\n")

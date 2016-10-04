@@ -45,7 +45,7 @@ object InvIdxPreFilt {
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS)
+      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)
       
     } finally {
       Config.closeSparkContext(sc)

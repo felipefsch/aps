@@ -50,6 +50,7 @@ object Args {
   var cores = "1"
   var executors = "1"
   var dynamicAllocation = "false"
+  var hdfsUri = "hdfs://localhost:9000/"
   
   val usage = """
 usage: class [options] ...
@@ -96,6 +97,7 @@ options:
    --threshold_c          N.M  : similarity threshold for near duplicates
    --groupnearduplicates  BOOL : search first for near duplicates
    --duplicatesInput      PATH : folder with part-xxxxx files with similar rankings
+   --hdfsUri              URI  : URI of hdfs file system
   """
   
   /**
@@ -207,7 +209,9 @@ options:
         case "--duplicatesInput" :: value :: tail =>
                                nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)                               
         case "--groupnearduplicates" :: value :: tail =>
-                               nextOption(map ++ Map('groupnearduplicates -> value.toBoolean), tail)                               
+                               nextOption(map ++ Map('groupnearduplicates -> value.toBoolean), tail)
+        case "--hdfsUri" :: value :: tail =>
+                               nextOption(map ++ Map('hdfsUri -> value.toString()), tail)                               
         case option :: tail => println("Unknown option " + option + "\n" + usage)
                                sys.exit(1) 
       }
@@ -359,7 +363,10 @@ options:
       EXPANDDUPLICATES = options.get('expandduplicates).mkString.toBoolean 
       
     if (options.get('storeresults).isDefined)
-      STORERESULTS = options.get('storeresults).mkString.toBoolean       
+      STORERESULTS = options.get('storeresults).mkString.toBoolean 
+      
+    if (options.get('hdfsUri).isDefined)
+      hdfsUri = options.get('hdfsUri).mkString       
       
     if (DEBUG) {
       println(options)
