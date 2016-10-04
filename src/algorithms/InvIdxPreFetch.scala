@@ -46,20 +46,34 @@ object InvIdxPreFetch {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-    val sc = Config.getSparkContext(Args.masterIp)
- 
-    var normThreshold = Args.normThreshold
-    var input = Args.input    
-    var output = Args.output + "InvIdxFetchPreFilt"
+
+    // Variables not modifiable. Important when running on a cluster
+    // so that all nodes have the correct values
+    val output = Args.output + "InvIdxFetchPreFilt"
+    val masterIp = Args.masterIp
+    val threshold = Args.threshold
+    val normThreshold = Args.normThreshold
+    val input = Args.input
+    val k = Args.k
+    val n = Args.n
+    val minOverlap = Args.minOverlap
+    val hdfsUri = Args.hdfsUri
+    val partitions = Args.partitions
+    val COUNT = Args.COUNT
+    val DEBUG = Args.DEBUG
+    val STORERESULTS = Args.STORERESULTS      
+    val GROUPDUPLICATES = Args.GROUPDUPLICATES
+    
+    val sc = Config.getSparkContext(masterIp)
 
     try {  
       // Load also sets ranking size k
-      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)   
+      var ranksArray = Load.loadData(input, sc, partitions, k, n)   
 
       if (Args.GROUPDUPLICATES)
         ranksArray = Duplicates.groupDuplicates(ranksArray)          
            
-      var similarRanks = run(ranksArray, Args.threshold)
+      var similarRanks = run(ranksArray, threshold)
       
       if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
@@ -67,7 +81,7 @@ object InvIdxPreFetch {
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)
+      Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
 
     } finally {
       Config.closeSparkContext(sc)

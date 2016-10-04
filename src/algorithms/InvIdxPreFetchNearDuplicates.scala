@@ -7,15 +7,31 @@ object InvIdxPreFetchNearDuplicates {
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-    val sc = Config.getSparkContext(Args.masterIp)
- 
-    var normThreshold = Args.normThreshold
-    var input = Args.input    
-    var output = Args.output + "InvIdxFetchPreFilt_c"
+    
+    // Variables not modifiable. Important when running on a cluster
+    // so that all nodes have the correct values
+    val output = Args.output + "InvIdxFetchPreFilt_c"
+    val masterIp = Args.masterIp
+    val threshold = Args.threshold
+    val threshold_c = Args.threshold_c
+    val normThreshold = Args.normThreshold
+    val normThreshold_c = Args.normThreshold_c
+    val input = Args.input
+    val k = Args.k
+    val n = Args.n
+    val minOverlap = Args.minOverlap
+    val hdfsUri = Args.hdfsUri
+    val partitions = Args.partitions
+    val COUNT = Args.COUNT
+    val DEBUG = Args.DEBUG
+    val STORERESULTS = Args.STORERESULTS      
+    val GROUPDUPLICATES = Args.GROUPDUPLICATES    
+    
+    val sc = Config.getSparkContext(masterIp)
 
     try {  
       // Load also sets ranking size k
-      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)
+      var ranksArray = Load.loadData(input, sc, partitions, k, n)
 
       var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
       if (Args.GROUPDUPLICATES) {
@@ -23,12 +39,12 @@ object InvIdxPreFetchNearDuplicates {
         duplicates = Duplicates.getDuplicates(ranksArray)        
       }
 
-      var nearDuplicates = InvIdxPreFetch.run(ranksArray, Args.threshold_c)                                                                                      
+      var nearDuplicates = InvIdxPreFetch.run(ranksArray, threshold_c)                                                                                      
       var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
       
-      var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, Args.threshold + Args.threshold_c)
-      similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, Args.threshold)
-      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, Args.k, Args.threshold, Args.normThreshold, Args.normThreshold_c)
+      var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, threshold + threshold_c)
+      similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, threshold)
+      similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, k, threshold, normThreshold, normThreshold_c)
       
       // Add near duplicates to result set
       similarRanks = similarRanks.union(nearDuplicates)
@@ -36,7 +52,7 @@ object InvIdxPreFetchNearDuplicates {
       var rddUnion = similarRanks.union(duplicates)
       similarRanks = Duplicates.expandDuplicates(rddUnion)
       
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)       
+      Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)       
  
     } finally {
       Config.closeSparkContext(sc)

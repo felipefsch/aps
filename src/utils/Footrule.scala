@@ -1,6 +1,7 @@
 package utils
 
 import Array._
+import org.apache.log4j._
 
 object Footrule {
   
@@ -147,15 +148,15 @@ object Footrule {
   def onPositionsWithPrediction[T1, T2](
       in1: Any,
       threshold: Long,
-      k: Long)
+      k: Int)
   : ((String,String), Long) = {
     // Input as ANY should be casted!
     var in = in1.asInstanceOf[((String, String), Iterable[(String,Long,Long)])]
     
     // Pool with rank positions
-    var pool1 = range(0, k.toInt)
-    var pool2 = range(0, k.toInt)
-    
+    var pool1 = range(0, k)
+    var pool2 = range(0, k)
+
     var ids = in._1
     var elements = in._2
     
@@ -163,6 +164,12 @@ object Footrule {
     
     // Footrule of existing elements, removing elements from pools
     for (e <- elements) {
+      
+      if (DEBUG) {
+        val log = LogManager.getRootLogger
+        log.info("Pos1: " + e._2.toInt + " pos2: " + e._3.toInt + " pool size: " + pool1.length + " k: " + k)
+      }
+      
       // Removing values from pool by changing it to ranking size
       // this ways, doesn't contribute on costs later on
       pool1(e._2.toInt) = k.toInt

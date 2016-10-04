@@ -15,20 +15,34 @@ object InvIdxPreFilt {
    
   def main(args: Array[String]): Unit = {
     Args.parse(args)
-    val sc = Config.getSparkContext(Args.masterIp)
    
-    var normThreshold = Args.normThreshold
-    var input = Args.input    
-    var output = Args.output + "InvIdxPreFilt"
-
+    // Variables not modifiable. Important when running on a cluster
+    // so that all nodes have the correct values
+    val output = Args.output + "InvIdxPreFilt"
+    val masterIp = Args.masterIp
+    val threshold = Args.threshold
+    val normThreshold = Args.normThreshold
+    val input = Args.input
+    val k = Args.k
+    val n = Args.n
+    val minOverlap = Args.minOverlap
+    val hdfsUri = Args.hdfsUri
+    val partitions = Args.partitions
+    val COUNT = Args.COUNT
+    val DEBUG = Args.DEBUG
+    val STORERESULTS = Args.STORERESULTS      
+    val GROUPDUPLICATES = Args.GROUPDUPLICATES
+    
+    val sc = Config.getSparkContext(masterIp)
+    
     try {  
       // Load also sets ranking size k
-      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)        
+      var ranksArray = Load.loadData(input, sc, partitions, k, n)        
       
       if (Args.GROUPDUPLICATES)
         ranksArray = Duplicates.groupDuplicates(ranksArray)          
 
-      var prefixSize = Footrule.getPrefixSize(Args.k, Args.threshold)
+      var prefixSize = Footrule.getPrefixSize(k, threshold)
       
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, prefixSize.toInt)        
       
@@ -37,7 +51,7 @@ object InvIdxPreFilt {
       val allDistances = distinctCandidates.map(x => Footrule.onLeftIdIndexedArray(x))        
       
       // Move distinct() to previous lines to avoid unnecessary computation
-      var similarRanks = allDistances.filter(x => x._2 <= Args.threshold).distinct()
+      var similarRanks = allDistances.filter(x => x._2 <= threshold).distinct()
 
       if (Args.GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
@@ -45,7 +59,7 @@ object InvIdxPreFilt {
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)
+      Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
       
     } finally {
       Config.closeSparkContext(sc)

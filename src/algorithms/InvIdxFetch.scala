@@ -17,18 +17,31 @@ object InvIdxFetch {
     Args.parse(args)
     val sc = Config.getSparkContext(Args.masterIp)
   
-    var normThreshold = Args.normThreshold
-    var input = Args.input    
-    var output = Args.output + "InvIdxFetch"
+    // Variables not modifiable. Important when running on a cluster
+    // so that all nodes have the correct values
+    val output = Args.output + "InvIdxFetch"
+    val masterIp = Args.masterIp
+    val threshold = Args.threshold
+    val normThreshold = Args.normThreshold
+    val input = Args.input
+    val k = Args.k
+    val n = Args.n
+    val minOverlap = Args.minOverlap
+    val hdfsUri = Args.hdfsUri
+    val partitions = Args.partitions
+    val COUNT = Args.COUNT
+    val DEBUG = Args.DEBUG
+    val STORERESULTS = Args.STORERESULTS      
+    val GROUPDUPLICATES = Args.GROUPDUPLICATES    
 
     try {
       // Load also sets ranking size k
-      var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n) 
+      var ranksArray = Load.loadData(input, sc, partitions, k, n) 
            
-      if (Args.GROUPDUPLICATES)
+      if (GROUPDUPLICATES)
         ranksArray = Duplicates.groupDuplicates(ranksArray)    
       
-      val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, Args.k)      
+      val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, k)      
       val flatInvIdx = invertedIndex.flatMap(x => x._2)
       
       val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)  
@@ -40,15 +53,15 @@ object InvIdxFetch {
   
       val allDistances = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))
       
-      var similarRanks = allDistances.filter(x => x._2 <= Args.threshold)
+      var similarRanks = allDistances.filter(x => x._2 <= threshold)
             
-      if (Args.GROUPDUPLICATES) {
+      if (GROUPDUPLICATES) {
         var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }
 
-      Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)
+      Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
       
     } finally {
       Config.closeSparkContext(sc)

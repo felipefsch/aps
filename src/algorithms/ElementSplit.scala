@@ -64,21 +64,35 @@ object ElementSplit {
   
     def main(args: Array[String]): Unit = {
       Args.parse(args)
-      val sc = Config.getSparkContext(Args.masterIp)
       
-      val normThreshold = Args.normThreshold
-      val input = Args.input    
+      // Variables not modifiable. Important when running on a cluster
+      // so that all nodes have the correct values
       val output = Args.output + "ElementSplit"
+      val masterIp = Args.masterIp
+      val threshold = Args.threshold
+      val normThreshold = Args.normThreshold
+      val input = Args.input
+      val k = Args.k
+      val n = Args.n
+      val minOverlap = Args.minOverlap
+      val hdfsUri = Args.hdfsUri
+      val partitions = Args.partitions
+      val COUNT = Args.COUNT
+      val DEBUG = Args.DEBUG
+      val STORERESULTS = Args.STORERESULTS      
+      val GROUPDUPLICATES = Args.GROUPDUPLICATES
+      
+      val sc = Config.getSparkContext(Args.masterIp)
       
       try {
         // Load also sets ranking size k
-        var ranksArray = Load.loadData(input, sc, Args.partitions, Args.k, Args.n)
+        var ranksArray = Load.loadData(input, sc, partitions, k, n)
         
-        if (Args.GROUPDUPLICATES)
+        if (GROUPDUPLICATES)
           ranksArray = Duplicates.groupDuplicates(ranksArray)
         
-        if (Args.DEBUG) {
-          println("Minimum overlap: " + Args.minOverlap + " denormalized threshold: " + Args.threshold)
+        if (DEBUG) {
+          println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
         }        
   
         // Create (Element, Pos, ID)       
@@ -96,19 +110,19 @@ object ElementSplit {
         
         // Filter empty candidates and those without minimum
         // overlap,since we know threshold can not be reached    
-        val filteredOnOverlap = groupOnCandidates.filter(x => x._2.size >= Args.minOverlap.toInt)                                             
+        val filteredOnOverlap = groupOnCandidates.filter(x => x._2.size >= minOverlap.toInt)                                             
         
         // Compute final distance and filter on threshold       
-        var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, Args.threshold, Args.k))
-                                            .filter(x => x._2 <= Args.threshold)                                       
+        var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, k))
+                                            .filter(x => x._2 <= threshold)                                       
         
-        if (Args.GROUPDUPLICATES) {
+        if (GROUPDUPLICATES) {
           var duplicates = Duplicates.getDuplicates(ranksArray)
           var rddUnion = similarRanks.union(duplicates)
           similarRanks = Duplicates.expandDuplicates(rddUnion)
         }
   
-        Store.rdd(output, similarRanks, Args.COUNT, Args.STORERESULTS, Args.hdfsUri)    
+        Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)    
         
       } finally {
         Config.closeSparkContext(sc)
