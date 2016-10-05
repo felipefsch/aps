@@ -134,12 +134,6 @@ object Benchmark {
         execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, bw, writeAll)
       }     
       
-      if (Args.BRUTEFORCE) {
-        bw.append("###Brute Force:\n")
-        bw.flush()
-        execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, bw, writeAll)
-      }
-      
       if (Args.INVIDXPREFETCH) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
         bw.flush()
@@ -156,18 +150,24 @@ object Benchmark {
         bw.append("###Inverted Index Fetching IDs:\n")
         bw.flush()
         execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, bw, writeAll)
-      }      
-      
-      if (Args.INVIDX) {
-        bw.append("###Inverted Index:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, bw, writeAll)
       }
       
       if (Args.INVIDXPREFETCH_C) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
         bw.flush()
         execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, bw, writeAll)
+      }    
+      
+      if (Args.INVIDX) {
+        bw.append("###Inverted Index:\n")
+        bw.flush()
+        execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, bw, writeAll)
+      }      
+            
+      if (Args.BRUTEFORCE) {
+        bw.append("###Brute Force:\n")
+        bw.flush()
+        execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, bw, writeAll)
       }      
       
       now = Calendar.getInstance()
