@@ -10,8 +10,6 @@ import utils._
 import org.apache.spark.rdd.RDD
 import scala.collection.immutable.IndexedSeq
 
-import benchmark.Profiling
-
 /**
  * Element Split algorithm:
  * -distribution based on ranking elements

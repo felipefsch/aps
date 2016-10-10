@@ -9,7 +9,6 @@ import scala.collection.immutable.IndexedSeq
 import scala.xml.XML
 
 import utils._
-import benchmark.Profiling
 
 object InvIdxFetch {
   

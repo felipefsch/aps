@@ -5,10 +5,10 @@ Master thesis code. When importing code to Eclipse, keep in mind you should also
 # Environment
 
 Code works with:
-* Spark 1.6.2
-* Scala 2.10.8
+* Spark 2.0.0
+* Scala 2.11.8
 * Hadoop 2.7.3
-* Java 1.7.0_95 / Java 1.8
+* Java 1.8.0_91
 
 # Eclipse
 

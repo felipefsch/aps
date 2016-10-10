@@ -6,7 +6,6 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import scala.xml.XML
 import utils._
-import benchmark.Profiling
 
 /**
  * Brute Force algorithm:
