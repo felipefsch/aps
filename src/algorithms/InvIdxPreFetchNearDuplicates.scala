@@ -39,10 +39,10 @@ object InvIdxPreFetchNearDuplicates {
         duplicates = Duplicates.getDuplicates(ranksArray)        
       }
 
-      var nearDuplicates = InvIdxPreFetch.run(ranksArray, threshold_c)                                                                                      
+      var nearDuplicates = InvIdxPreFetch.run(ranksArray, threshold_c, k)                                                                                      
       var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
       
-      var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, threshold + threshold_c)
+      var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, threshold + threshold_c, k)
       similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, threshold)
       similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, k, threshold, normThreshold, normThreshold_c)
       

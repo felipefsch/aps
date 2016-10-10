@@ -79,18 +79,18 @@ object Benchmark {
       case e:
         Exception => bw.append(e.toString() + "\n\n")
         bw.flush()
-    }    
+    }
   }
   
   def main(args: Array[String]): Unit = {
-    Args.parse(args)    
+    Args.parse(args)
 
     var writeAll = Args.WRITEALL
 
     // Initialize spark and so on to do not influence in the final execution time
     if (Args.INIT) {
       try {
-        algorithms.Init.main(args)        
+        algorithms.Init.main(args)
       } catch {
         case e:
           Exception => println(e.toString() + "\n\n")
@@ -98,15 +98,15 @@ object Benchmark {
     }
   
     if (Args.CREATEDATA) {
-      try {          
+      try {
         benchmark.SyntheticDataSet.main(args)
       } catch {
         case e:
           Exception => println("\n" + e.toString() + "\n")
-      }  
+      }
     }
     
-    if (Args.BENCHMARK) {     
+    if (Args.BENCHMARK) {
       // Set file writer
       var bw = getWriter()
       var now = Calendar.getInstance()
@@ -114,49 +114,55 @@ object Benchmark {
       var minute = now.get(Calendar.MINUTE)
       var day = now.get(Calendar.DATE)
       var month = now.get(Calendar.MONTH) + 1
-      bw.append("\n\n###############################################################################\n")    
+      bw.append("\n\n###############################################################################\n")
       bw.append("# Benchmarking started at " + hour + ":" + minute)
       bw.append(" (" + day + "/" + month + ")\n")
-      bw.append("-k: " + Args.k + "\n")      
+      bw.append("-k: " + Args.k + "\n")
       bw.append("-n: " + Args.n + "\n")
       bw.append("-threshold: " + Args.normThreshold + "\n")
       bw.append("-threshold_c: " + Args.normThreshold_c + "\n")
       bw.append("-input data: " + Args.input + "\n")
-      bw.append("-store final results: " + Args.STORERESULTS + "\n")      
+      bw.append("-store final results: " + Args.STORERESULTS + "\n")
       bw.append("-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
-      bw.append("-pre group near duplicates: " + Args.GROUPNEARDUPLICATES + "\n")                 
+      bw.append("-pre group near duplicates: " + Args.GROUPNEARDUPLICATES + "\n")
       bw.append("###############################################################################\n\n")
-      bw.flush()      
+      bw.flush()
       
       if (Args.ELEMENTSPLIT) {
         bw.append("###Element Split:\n")
         bw.flush()
         execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, bw, writeAll)
-      }     
+      }
       
       if (Args.INVIDXPREFETCH) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
         bw.flush()
         execTimeAvg(algorithms.InvIdxPreFetch.main(args), Args.nExecs, bw, writeAll)
-      }      
-      
-      if (Args.INVIDXPRE) {
-        bw.append("###Inverted Index Prefix Filtering:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, bw, writeAll)
-      }               
-      
-      if (Args.INVIDXFETCH) {
-        bw.append("###Inverted Index Fetching IDs:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, bw, writeAll)
       }
       
       if (Args.INVIDXPREFETCH_C) {
         bw.append("###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
         bw.flush()
         execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, bw, writeAll)
-      }    
+      }
+      
+      if (Args.ELEMENTSPLIT_C) {
+        bw.append("###Element Split with near duplicates:\n")
+        bw.flush()
+        execTimeAvg(algorithms.ElementSplitNearDuplicates.main(args), Args.nExecs, bw, writeAll)
+      }
+      
+      if (Args.INVIDXPRE) {
+        bw.append("###Inverted Index Prefix Filtering:\n")
+        bw.flush()
+        execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, bw, writeAll)
+      }
+      
+      if (Args.INVIDXFETCH) {
+        bw.append("###Inverted Index Fetching IDs:\n")
+        bw.flush()
+        execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, bw, writeAll)
+      }
       
       if (Args.INVIDX) {
         bw.append("###Inverted Index:\n")

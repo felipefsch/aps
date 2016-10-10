@@ -18,7 +18,8 @@ object Args {
   var INVIDXPRE = true
   var INVIDXFETCH = true
   var INVIDXPREFETCH = true
-  var INVIDXPREFETCH_C = true  
+  var INVIDXPREFETCH_C = true
+  var ELEMENTSPLIT_C = true
   var BENCHMARK = true
   
   var GROUPDUPLICATES = false
@@ -86,6 +87,7 @@ options:
    --init                 BOOL : run Spark context initialization
    --bruteforce           BOOL : run brute force
    --elementsplit         BOOL : run elementsplit
+   --elementsplit_c       BOOL : run elementsplit with near duplicates
    --invidx               BOOL : run inverted index
    --invidxpre            BOOL : run inverted index prefix filtering
    --invidxfetch          BOOL : run inverted index fetching IDs
@@ -199,7 +201,9 @@ options:
         case "--invidxprefetch" :: value :: tail =>
                                nextOption(map ++ Map('invidxprefetch -> value.toBoolean), tail)
         case "--invidxprefetch_c" :: value :: tail =>
-                               nextOption(map ++ Map('invidxprefetch_c -> value.toBoolean), tail)                               
+                               nextOption(map ++ Map('invidxprefetch_c -> value.toBoolean), tail)
+        case "--elementsplit_c" :: value :: tail =>
+                               nextOption(map ++ Map('elementsplit_c -> value.toBoolean), tail)                               
         case "--elementsplit" :: value :: tail =>
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
         case "--groupduplicates" :: value :: tail =>
@@ -346,6 +350,9 @@ options:
 
     if (options.get('invidxprefetch_c).isDefined)
       INVIDXPREFETCH_C = options.get('invidxprefetch_c).mkString.toBoolean
+      
+    if (options.get('elementsplit_c).isDefined)
+      ELEMENTSPLIT_C = options.get('elementsplit_c).mkString.toBoolean      
       
     if (options.get('elementsplit).isDefined)
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean

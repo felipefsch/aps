@@ -59,6 +59,32 @@ object ElementSplit {
           ((in1._3, in2._3),(in1._1, in1._2, in2._2))  
       }*/
     }
+    
+    def run(in: RDD[(String, Array[String])], threshold: Long, k: Int, minOverlap: Long)
+    : RDD[((String, String), Long)] = {
+        // Create (Element, Pos, ID)       
+        val triples = in.flatMap(x => emitElementRankId(x))
+        
+        // Group on elements (Element, [Element, Pos, ID]*)
+        // and remove element to get [Element, Pos, ID]*
+        val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
+        
+        // Possible candidate pair for each element     
+        val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
+        
+        // Group elements for all created candidates     
+        val groupOnCandidates = candidates.groupByKey()    
+        
+        // Filter empty candidates and those without minimum
+        // overlap,since we know threshold can not be reached    
+        val filteredOnOverlap = groupOnCandidates.filter(x => x._2.size >= minOverlap.toInt)                                             
+        
+        // Compute final distance and filter on threshold       
+        var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, k))
+                                            .filter(x => x._2 <= threshold)
+                                            
+        return similarRanks
+    }    
   
     def main(args: Array[String]): Unit = {
       Args.parse(args)
@@ -92,27 +118,8 @@ object ElementSplit {
         if (DEBUG) {
           println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
         }        
-  
-        // Create (Element, Pos, ID)       
-        val triples = ranksArray.flatMap(x => emitElementRankId(x))
-        
-        // Group on elements (Element, [Element, Pos, ID]*)
-        // and remove element to get [Element, Pos, ID]*
-        val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
-        
-        // Possible candidate pair for each element     
-        val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
-        
-        // Group elements for all created candidates     
-        val groupOnCandidates = candidates.groupByKey()    
-        
-        // Filter empty candidates and those without minimum
-        // overlap,since we know threshold can not be reached    
-        val filteredOnOverlap = groupOnCandidates.filter(x => x._2.size >= minOverlap.toInt)                                             
-        
-        // Compute final distance and filter on threshold       
-        var similarRanks = filteredOnOverlap.map(x => Footrule.onPositionsWithPrediction(x, threshold, k))
-                                            .filter(x => x._2 <= threshold)                                       
+                                                    
+        var similarRanks = run(ranksArray, threshold, k, minOverlap)                                            
         
         if (GROUPDUPLICATES) {
           var duplicates = Duplicates.getDuplicates(ranksArray)
