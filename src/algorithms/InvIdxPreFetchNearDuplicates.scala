@@ -34,7 +34,7 @@ object InvIdxPreFetchNearDuplicates {
       var ranksArray = Load.loadData(input, sc, partitions, k, n)
 
       var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
-      if (Args.GROUPDUPLICATES) {
+      if (GROUPDUPLICATES) {
         ranksArray = Duplicates.groupDuplicates(ranksArray)
         duplicates = Duplicates.getDuplicates(ranksArray)        
       }
