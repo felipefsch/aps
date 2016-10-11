@@ -38,7 +38,7 @@ object InvIdx {
       // Load also sets ranking size k
       var ranksArray = Load.loadData(input, sc, partitions, k,n) 
       
-      if (Args.GROUPDUPLICATES)
+      if (GROUPDUPLICATES)
         ranksArray = Duplicates.groupDuplicates(ranksArray)      
        
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, k)

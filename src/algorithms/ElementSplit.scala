@@ -106,7 +106,7 @@ object ElementSplit {
       val STORERESULTS = Args.STORERESULTS      
       val GROUPDUPLICATES = Args.GROUPDUPLICATES
       
-      val sc = Config.getSparkContext(Args.masterIp)
+      val sc = Config.getSparkContext(masterIp)
       
       try {
         // Load also sets ranking size k
