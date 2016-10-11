@@ -8,22 +8,20 @@ object Args {
   var COUNT = false
   var CREATEDATA = false
   var STORERESULTS = true
-  var EXPANDDUPLICATES = false
   
-  var WRITEALL = true
+  var WRITEALL = false
   var INIT = true
-  var BRUTEFORCE = true
-  var ELEMENTSPLIT = true
-  var INVIDX = true
-  var INVIDXPRE = true
-  var INVIDXFETCH = true
-  var INVIDXPREFETCH = true
-  var INVIDXPREFETCH_C = true
-  var ELEMENTSPLIT_C = true
+  var BRUTEFORCE = false
+  var ELEMENTSPLIT = false
+  var INVIDX = false
+  var INVIDXPRE = false
+  var INVIDXFETCH = false
+  var INVIDXPREFETCH = false
+  var INVIDXPREFETCH_C = false
+  var ELEMENTSPLIT_C = false
   var BENCHMARK = true
   
   var GROUPDUPLICATES = false
-  var GROUPNEARDUPLICATES = false
   
   var benchmarkOutput = ""
   
@@ -95,9 +93,7 @@ options:
    --invidxprefetch_c     BOOL : prefix filtering fetch ID with near duplicates
    --benchmark            BOOL : run benchmarking (false dont run any approach)
    --groupduplicates      BOOL : group duplicates before checking for similars
-   --expandduplicates     BOOL : expand duplicate IDs with its rankings
    --threshold_c          N.M  : similarity threshold for near duplicates
-   --groupnearduplicates  BOOL : search first for near duplicates
    --duplicatesInput      PATH : folder with part-xxxxx files with similar rankings
    --hdfsUri              URI  : URI of hdfs file system
   """
@@ -157,9 +153,7 @@ options:
         case "--output" :: value :: tail =>
                                nextOption(map ++ Map('output -> value.toString()), tail)
         case "--storeresults" :: value :: tail =>
-                               nextOption(map ++ Map('storeresults -> value.toBoolean), tail)
-        case "--expandduplicates" :: value :: tail =>
-                               nextOption(map ++ Map('expandduplicates -> value.toBoolean), tail)                               
+                               nextOption(map ++ Map('storeresults -> value.toBoolean), tail)                               
         case "--datasetOutput" :: value :: tail =>
                                nextOption(map ++ Map('datasetOutput -> value.toString()), tail)
         case "--benchmarkOutput" :: value :: tail =>
@@ -211,9 +205,7 @@ options:
         case "--threshold_c" :: value :: tail =>
                                nextOption(map ++ Map('threshold_c -> value.toDouble), tail)                               
         case "--duplicatesInput" :: value :: tail =>
-                               nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)                               
-        case "--groupnearduplicates" :: value :: tail =>
-                               nextOption(map ++ Map('groupnearduplicates -> value.toBoolean), tail)
+                               nextOption(map ++ Map('duplicatesInput -> value.toString()), tail)
         case "--hdfsUri" :: value :: tail =>
                                nextOption(map ++ Map('hdfsUri -> value.toString()), tail)                               
         case option :: tail => println("Unknown option " + option + "\n" + usage)
@@ -358,16 +350,10 @@ options:
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean
       
     if (options.get('groupduplicates).isDefined)
-      GROUPDUPLICATES = options.get('groupduplicates).mkString.toBoolean
+      GROUPDUPLICATES = options.get('groupduplicates).mkString.toBoolean   
 
-    if (options.get('groupnearduplicates).isDefined)
-      GROUPNEARDUPLICATES = options.get('groupnearduplicates).mkString.toBoolean   
-      
     if (options.get('duplicatesInput).isDefined)
       duplicatesInput = options.get('duplicatesInput).mkString        
-      
-    if (options.get('expandduplicates).isDefined)
-      EXPANDDUPLICATES = options.get('expandduplicates).mkString.toBoolean 
       
     if (options.get('storeresults).isDefined)
       STORERESULTS = options.get('storeresults).mkString.toBoolean 
