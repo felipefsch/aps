@@ -43,7 +43,12 @@ object Load {
     : RDD[(String, Array[String])] = {
       
       // File reading
-      val file = sc.textFile(path, partitions)
+      val file = if (partitions != 0){ 
+                   sc.textFile(path, partitions)
+                 } 
+                 else {
+                   sc.textFile(path)
+                 } 
       
       // Split elements
       val ranks = file.map(a => a.split(" "))
@@ -74,7 +79,12 @@ object Load {
     private def colonSeparated (path: String, sc: SparkContext, partitions: Int, k: Int, n: Int)
     : RDD[(String, Array[String])] = {
       // File reading
-      val file = sc.textFile(path, partitions)
+      val file = if (partitions != 0){ 
+                   sc.textFile(path, partitions)
+                 } 
+                 else {
+                   sc.textFile(path)
+                 } 
 
       // Split input, removing initial string and
       // elements as colon separated numbers
@@ -95,7 +105,12 @@ object Load {
         //filtered = filtered.take(n)
         
         // Convert array to RDD
-        filtered = sc.parallelize(filterAmount).repartition(partitions)
+        filtered = if (partitions != 0){ 
+                     sc.parallelize(filterAmount).repartition(partitions)
+                   } 
+                   else {
+                     sc.parallelize(filterAmount)
+                   }
       }      
       
       return filtered
@@ -142,7 +157,12 @@ object Load {
     def loadSimilars(dir: String, sc: SparkContext, partitions: Int)
     : RDD[(String, String)] = {
       val partFiles = getPartFiles(dir)
-      var l = sc.textFile(partFiles, partitions)
+      var l = if (partitions != 0){ 
+                   sc.textFile(partFiles, partitions)
+                 } 
+                 else {
+                   sc.textFile(partFiles)
+                 } 
       var similars = l.map(x =>
         (x.substring(x.lastIndexOf("(") + 1, x.indexOf(",")),
          x.substring(x.indexOf(",") + 1, x.indexOf(")")))

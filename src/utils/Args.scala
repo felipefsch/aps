@@ -45,7 +45,7 @@ object Args {
   var masterIp = ""
   var duplicatesInput = ""
   
-  var partitions = 1
+  var partitions = 0
   var cores = "1"
   var executors = "1"
   var dynamicAllocation = "false"
