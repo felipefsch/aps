@@ -4,6 +4,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
+import org.apache.log4j._
+
 
 import scala.collection.immutable.IndexedSeq
 import scala.xml.XML
@@ -81,7 +83,10 @@ object InvIdxPreFetch {
       }
 
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
-
+    } catch {
+      case e:
+        Exception => val log = LogManager.getRootLogger
+        log.error(e.toString())
     } finally {
       Config.closeSparkContext(sc)
     }

@@ -6,6 +6,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import scala.xml.XML
 import utils._
+import org.apache.log4j._
+
 
 /**
  * Brute Force algorithm:
@@ -58,7 +60,10 @@ object BruteForce {
       }
 
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
-      
+    } catch {
+      case e:
+        Exception => val log = LogManager.getRootLogger
+        log.error(e.toString())      
     } finally {
       // Force stopping Spark Context before exiting the algorithm 
       Config.closeSparkContext(sc)

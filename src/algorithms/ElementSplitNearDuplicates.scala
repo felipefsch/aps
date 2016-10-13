@@ -2,6 +2,8 @@ package algorithms
 
 import utils._
 import org.apache.spark.rdd.EmptyRDD
+import org.apache.log4j._
+
 
 object ElementSplitNearDuplicates {
   
@@ -53,7 +55,10 @@ object ElementSplitNearDuplicates {
       similarRanks = Duplicates.expandDuplicates(rddUnion)
       
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)       
- 
+    } catch {
+      case e:
+        Exception => val log = LogManager.getRootLogger
+        log.error(e.toString())
     } finally {
       Config.closeSparkContext(sc)
     }

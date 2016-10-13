@@ -9,6 +9,7 @@ import scala.xml.XML
 import utils._
 import org.apache.spark.rdd.RDD
 import scala.collection.immutable.IndexedSeq
+import org.apache.log4j._
 
 /**
  * Element Split algorithm:
@@ -128,7 +129,10 @@ object ElementSplit {
         }
   
         Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)    
-        
+      } catch {
+        case e:
+          Exception => val log = LogManager.getRootLogger
+          log.error(e.toString())
       } finally {
         Config.closeSparkContext(sc)
       }
