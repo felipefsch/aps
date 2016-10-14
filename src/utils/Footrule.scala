@@ -12,6 +12,26 @@ object Footrule {
    */
   implicit def pimp(n:Int) = new { def ! = ((1 to n) :\ 1) ( _ * _ ) }  
   
+  /**
+   * The distances are ordered
+   */
+  def getMedoidDistances[T1, T2](ranking: (T1, Array[T2]), medoids: Array[(T1, Array[T2])])
+  : Array[(T1, Long)] = {
+    // TODO: IF THEY ALL HAVE THE SAME DISTANCE, TAKE ONE AT RANDOM FOR BETTER PARTITIONING!!!!
+    val distances = medoids.map(x => (x._1, getRankingsDistance(ranking._2, x._2))).sortBy(_._2)
+    
+    return distances
+  }
+  
+  /**
+   * Given Array of medoids, get closes medoid to the ranking
+   */
+  def getClosestMedoid[T1, T2](distances: Array[(T1, Long)])
+  : (T1, Long) = {
+    // TODO: IF THEY ALL HAVE THE SAME DISTANCE, TAKE ONE AT RANDOM FOR BETTER PARTITIONING!!!!
+    return distances.minBy(_._2)    
+  }
+  
   def getMaxDistance ( k: Long ) : Long = {
     return k * (k + 1) 
   }
@@ -87,19 +107,21 @@ object Footrule {
     return dist
   }
   
-  def onLeftIdIndexedArray[T1, T2] ( ranks:((T1, Array[T2]), (T1, Array[T2])))
-  : ((T1,T1), Long) = {
+  
+  /**
+   * Compute Footrule distance between two rankings arrays
+   */
+  def getRankingsDistance[T](ranking1: Array[T], ranking2: Array[T])
+  : Long = {
     var footrule:Long = 0;
-    val ranks1:Array[T2] = ranks._1._2
-    val ranks2:Array[T2] = ranks._2._2
     
     // Both should have same k number of elements
-    val k = ranks1.size
+    val k = ranking1.size
     
     // Check for elements intersection to compute distance
     // and sum contribution of elements only on first ranking
     for (i <- 0 until k) {
-      var elPos = ranks2.indexOf(ranks1(i))
+      var elPos = ranking2.indexOf(ranking1(i))
       if (elPos < 0)
         footrule = footrule + partialDistance(i, k)
       else
@@ -114,14 +136,21 @@ object Footrule {
     // Elements only on second ranking should
     // also contribute to Footrule distance
     for (i <- 0 until k) {
-      var elPos = ranks1.indexOf(ranks2(i))
+      var elPos = ranking1.indexOf(ranking2(i))
       if (elPos < 0)
         footrule = footrule + partialDistance(i, k)        
-    }
+    }    
     
     if (DEBUG) {
       println("Final footrule: " + footrule)
-    }    
+    }       
+    
+    return footrule
+  }
+  
+  def onLeftIdIndexedArray[T1, T2] ( ranks:((T1, Array[T2]), (T1, Array[T2])))
+  : ((T1,T1), Long) = {
+    var footrule = getRankingsDistance(ranks._1._2, ranks._2._2)
 
     return ((ranks._1._1, ranks._2._1), footrule)
   }

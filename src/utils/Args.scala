@@ -19,6 +19,7 @@ object Args {
   var INVIDXPREFETCH = false
   var INVIDXPREFETCH_C = false
   var ELEMENTSPLIT_C = false
+  var METRICSPACE = false
   var BENCHMARK = true
   
   var GROUPDUPLICATES = false
@@ -46,6 +47,7 @@ object Args {
   var duplicatesInput = ""
   
   var partitions = 0
+  var medoidsmultiplier = 1
   var cores = "1"
   var executors = "1"
   var dynamicAllocation = "false"
@@ -91,6 +93,8 @@ options:
    --invidxfetch          BOOL : run inverted index fetching IDs
    --invidxprefetch       BOOL : run inverted index prefix filtering fetch ID
    --invidxprefetch_c     BOOL : prefix filtering fetch ID with near duplicates
+   --metricspace          BOOL : run search using metric space
+   --medoidsmultiplier    INT  : how many medoids per partition
    --benchmark            BOOL : run benchmarking (false dont run any approach)
    --groupduplicates      BOOL : group duplicates before checking for similars
    --threshold_c          N.M  : similarity threshold for near duplicates
@@ -200,6 +204,10 @@ options:
                                nextOption(map ++ Map('elementsplit_c -> value.toBoolean), tail)                               
         case "--elementsplit" :: value :: tail =>
                                nextOption(map ++ Map('elementsplit -> value.toBoolean), tail)
+        case "--metricspace" :: value :: tail =>
+                               nextOption(map ++ Map('metricspace -> value.toBoolean), tail)    
+        case "--medoidsmultiplier" :: value :: tail =>
+                               nextOption(map ++ Map('medoidsmultiplier -> value.toInt), tail)                               
         case "--groupduplicates" :: value :: tail =>
                                nextOption(map ++ Map('groupduplicates -> value.toBoolean), tail)
         case "--threshold_c" :: value :: tail =>
@@ -307,6 +315,9 @@ options:
     if (options.get('partitions).isDefined)
       partitions = options.get('partitions).mkString.toInt
       
+    if (options.get('medoidsmultiplier).isDefined)
+      medoidsmultiplier = options.get('medoidsmultiplier).mkString.toInt      
+      
     if (options.get('cores).isDefined)
       cores = options.get('cores).mkString
       
@@ -344,7 +355,10 @@ options:
       INVIDXPREFETCH_C = options.get('invidxprefetch_c).mkString.toBoolean
       
     if (options.get('elementsplit_c).isDefined)
-      ELEMENTSPLIT_C = options.get('elementsplit_c).mkString.toBoolean      
+      ELEMENTSPLIT_C = options.get('elementsplit_c).mkString.toBoolean
+      
+    if (options.get('metricspace).isDefined)
+      METRICSPACE = options.get('metricspace).mkString.toBoolean      
       
     if (options.get('elementsplit).isDefined)
       ELEMENTSPLIT = options.get('elementsplit).mkString.toBoolean

@@ -127,6 +127,12 @@ object Benchmark {
       bw.append("-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
       bw.append("###############################################################################\n\n")
       bw.flush()
+
+      if (Args.METRICSPACE) {
+        bw.append("###Metric Space:\n")
+        bw.flush()
+        execTimeAvg(algorithms.MetricSpace.main(args), Args.nExecs, bw, writeAll)
+      }      
       
       if (Args.ELEMENTSPLIT) {
         bw.append("###Element Split:\n")
