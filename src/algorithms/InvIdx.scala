@@ -55,8 +55,10 @@ object InvIdx {
       // Move distinct() to previous lines to avoid unnecessary computation
       var similarRanks = allDistances.filter(x => x._2 <= threshold).distinct()
             
-      var rddUnion = similarRanks.union(duplicates)
-      similarRanks = Duplicates.expandDuplicates(rddUnion)
+      if (GROUPDUPLICATES) {
+        var rddUnion = similarRanks.union(duplicates)
+        similarRanks = Duplicates.expandDuplicates(rddUnion)
+      }
 
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)
     } catch {
