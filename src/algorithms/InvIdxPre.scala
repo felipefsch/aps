@@ -40,8 +40,11 @@ object InvIdxPreFilt {
       // Load also sets ranking size k
       var ranksArray = Load.loadData(input, sc, partitions, k, n)        
       
-      if (Args.GROUPDUPLICATES)
-        ranksArray = Duplicates.groupDuplicates(ranksArray)          
+      var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
+      if (GROUPDUPLICATES) {
+        ranksArray = Duplicates.groupDuplicates(ranksArray)
+        duplicates = Duplicates.getDuplicates(ranksArray)        
+      }          
 
       var prefixSize = Footrule.getPrefixSize(k, threshold)
       
@@ -54,8 +57,7 @@ object InvIdxPreFilt {
       // Move distinct() to previous lines to avoid unnecessary computation
       var similarRanks = allDistances.filter(x => x._2 <= threshold).distinct()
 
-      if (Args.GROUPDUPLICATES) {
-        var duplicates = Duplicates.getDuplicates(ranksArray)
+      if (GROUPDUPLICATES) {
         var rddUnion = similarRanks.union(duplicates)
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }

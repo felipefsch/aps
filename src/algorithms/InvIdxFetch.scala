@@ -39,8 +39,11 @@ object InvIdxFetch {
       // Load also sets ranking size k
       var ranksArray = Load.loadData(input, sc, partitions, k, n) 
            
-      if (GROUPDUPLICATES)
-        ranksArray = Duplicates.groupDuplicates(ranksArray)    
+      var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
+      if (GROUPDUPLICATES) {
+        ranksArray = Duplicates.groupDuplicates(ranksArray)
+        duplicates = Duplicates.getDuplicates(ranksArray)        
+      }    
       
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, k)      
       val flatInvIdx = invertedIndex.flatMap(x => x._2)
@@ -57,7 +60,6 @@ object InvIdxFetch {
       var similarRanks = allDistances.filter(x => x._2 <= threshold)
             
       if (GROUPDUPLICATES) {
-        var duplicates = Duplicates.getDuplicates(ranksArray)
         var rddUnion = similarRanks.union(duplicates)
         similarRanks = Duplicates.expandDuplicates(rddUnion)
       }

@@ -51,8 +51,10 @@ object InvIdxPreFetchNearDuplicates {
       // Add near duplicates to result set
       similarRanks = similarRanks.union(nearDuplicates)
             
-      var rddUnion = similarRanks.union(duplicates)
-      similarRanks = Duplicates.expandDuplicates(rddUnion)
+      if (GROUPDUPLICATES) {
+        var rddUnion = similarRanks.union(duplicates)
+        similarRanks = Duplicates.expandDuplicates(rddUnion)
+      }
       
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)       
      } catch {

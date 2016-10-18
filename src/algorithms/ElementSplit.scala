@@ -113,17 +113,19 @@ object ElementSplit {
         // Load also sets ranking size k
         var ranksArray = Load.loadData(input, sc, partitions, k, n)
         
-        if (GROUPDUPLICATES)
+        var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
+        if (GROUPDUPLICATES) {
           ranksArray = Duplicates.groupDuplicates(ranksArray)
+          duplicates = Duplicates.getDuplicates(ranksArray)        
+        }
         
         if (DEBUG) {
           println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
         }        
                                                     
         var similarRanks = run(ranksArray, threshold, k, minOverlap)                                            
-        
+
         if (GROUPDUPLICATES) {
-          var duplicates = Duplicates.getDuplicates(ranksArray)
           var rddUnion = similarRanks.union(duplicates)
           similarRanks = Duplicates.expandDuplicates(rddUnion)
         }
