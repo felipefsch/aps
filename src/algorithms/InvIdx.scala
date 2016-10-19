@@ -48,7 +48,7 @@ object InvIdx {
        
       val invertedIndex = InvertedIndex.getInvertedIndex(ranksArray, k)
       
-      val distinctCandidates = InvertedIndex.getCandidates(invertedIndex)  
+      val distinctCandidates = InvertedIndex.getCandidates(invertedIndex)
 
       val allDistances = distinctCandidates.map(x => Footrule.onLeftIdIndexedArray(x))
       

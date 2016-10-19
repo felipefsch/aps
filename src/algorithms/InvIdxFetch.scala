@@ -46,7 +46,7 @@ object InvIdxFetch {
       }    
       
       val invertedIndex = InvertedIndex.getInvertedIndexIDs(ranksArray, k)      
-      val flatInvIdx = invertedIndex.flatMap(x => x._2)
+      //val flatInvIdx = invertedIndex.flatMap(x => x._2)
       
       val distinctCandidates = InvertedIndex.getCandidatesIDs(invertedIndex)  
   

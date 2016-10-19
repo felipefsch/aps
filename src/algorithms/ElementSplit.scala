@@ -10,6 +10,7 @@ import utils._
 import org.apache.spark.rdd.RDD
 import scala.collection.immutable.IndexedSeq
 import org.apache.log4j._
+import org.apache.spark.HashPartitioner
 
 /**
  * Element Split algorithm:
@@ -28,11 +29,11 @@ object ElementSplit {
      * 
      * For all ranking elements
      */
-    def emitElementRankId[T1, T2]( in: (T1, Array[T2])) : Array[(T2, Long, T1)] = {
+    def emitElementRankId[T1, T2]( in: (T1, Array[T2])) : Array[(T2, List[(Long, T1)])] = {
       var array = in._2
       var rankingId = in._1
       
-      var output = Array.tabulate(array.length){ x => (array(x), x.toLong, rankingId)}
+      var output = Array.tabulate(array.length){ x => (array(x), List((x.toLong, rankingId)))}
       
       return output
       /*for (i <- 0 until array.size) yield {
@@ -42,7 +43,7 @@ object ElementSplit {
     
     /**
      * Input:
-     * -[(Element, Rank, ID)]*
+     * -(Element, [Rank, ID]*)
      * Output:
      * -(ID1, ID2),(Element, Rank1, Rank2)
      * 
@@ -50,10 +51,10 @@ object ElementSplit {
      * Rank1 = Position of element on ranking ID1
      * Rank2 = Position of element on ranking ID2
      */    
-    def emitCandidatePairs[T1 <%Ordered[T1], T2]( in: Iterable[(T2, Long, T1)])
-    : Iterable[((T1, T1),(T2, Long, Long))] = {
+    def emitCandidatePairs[T1 <%Ordered[T1], T2]( in: (T2, List[(Long, T1)]))
+    : Iterable[((T1, T1),List[(T2, Long, Long)])] = {
 
-      var output = in.flatMap(x => in.map(y => ((x._3, y._3),(x._1, x._2, y._2))).filter(x => x._1._1 < x._1._2))
+      var output = in._2.flatMap(x => in._2.map(y => ((x._2, y._2),List((in._1, x._1, y._1)))).filter(x => x._1._1 < x._1._2))
       
       return output
       /*for (in1 <- in; in2 <- in; if (in1._3 < in2._3)) yield {
@@ -61,20 +62,22 @@ object ElementSplit {
       }*/
     }
     
-    def run(in: RDD[(String, Array[String])], threshold: Long, k: Int, minOverlap: Long)
+    def run(in: RDD[(String, Array[String])], threshold: Long, k: Int, minOverlap: Long, partitions: Int)
     : RDD[((String, String), Long)] = {
         // Create (Element, Pos, ID)       
         val triples = in.flatMap(x => emitElementRankId(x))
+        //triples.partitionBy(new HashParitioner(partitions))
         
         // Group on elements (Element, [Element, Pos, ID]*)
         // and remove element to get [Element, Pos, ID]*
-        val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
+        //val groupOnElement = triples.groupBy(tup => tup._1).map(x => x._2)
+        val groupOnElement = triples.reduceByKey((a, b) => a ++ b)
         
         // Possible candidate pair for each element     
-        val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))
+        val candidates = groupOnElement.flatMap(x => emitCandidatePairs(x))//.partitionBy(new HashPartitioner(partitions))
         
         // Group elements for all created candidates     
-        val groupOnCandidates = candidates.groupByKey()    
+        val groupOnCandidates = candidates.reduceByKey((a, b) => a ++ b)    
         
         // Filter empty candidates and those without minimum
         // overlap,since we know threshold can not be reached    
@@ -123,7 +126,7 @@ object ElementSplit {
           println("Minimum overlap: " + minOverlap + " denormalized threshold: " + threshold)
         }        
                                                     
-        var similarRanks = run(ranksArray, threshold, k, minOverlap)                                            
+        var similarRanks = run(ranksArray, threshold, k, minOverlap, partitions)                                            
 
         if (GROUPDUPLICATES) {
           var rddUnion = similarRanks.union(duplicates)
