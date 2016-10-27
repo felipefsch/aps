@@ -6,6 +6,11 @@ import java.io._
 import java.util.Calendar
 import scala.util.control.NonFatal
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import java.io.PrintWriter;
+
 /**
  * Benchmarking tool for extracting execution time of APSS implementations
  */
@@ -14,16 +19,69 @@ object Benchmark {
   /**
    * Get benchmarking output writer
    */
-  def getWriter() : BufferedWriter = {
-    val file = new File(Args.benchmarkOutput)
+  /*def getWriter(filePath: String) : BufferedWriter = {
+    val file = new File(filePath)
     var bw = new BufferedWriter(new FileWriter(file, true)) 
     return bw
+  }*/
+  
+  /**
+   * Write benchmarking result to either HDFS or local file system, depending
+   * input argument
+   */
+  def getWriter(filePath: String) : Either[BufferedWriter, PrintWriter] = {
+    if (filePath.contains("hdfs")) {    
+      val conf = new Configuration()
+      //conf.set("fs.defaultFS", "hdfs://quickstart.cloudera:8020")
+      val hdfsUrl = filePath.substring(0, filePath.lastIndexOf(":"))
+      var aux = filePath.substring(hdfsUrl.length(), filePath.length())
+      val port = aux.substring(aux.indexOf(":") + 1, aux.indexOf("/"))
+      aux = aux.substring(aux.indexOf("/"), aux.length())
+      val file = aux
+      
+      conf.set("fs.defaultFS", hdfsUrl + ":" + port)
+      val fs= FileSystem.get(conf)
+      val output = fs.create(new Path(file))
+      val writer = new PrintWriter(output)
+      
+      return Right(writer)
+    }
+    else {
+      val file = new File(filePath)
+      var bw = new BufferedWriter(new FileWriter(file, true))
+      
+      return Left(bw)      
+    }
+  }
+  
+  /**
+   * Close the writer
+   */
+  def closeWriter(writer: Either[BufferedWriter, PrintWriter]) {
+    writer match {
+      case Left(b) =>
+        b.close()
+      case Right(p) =>
+        p.close()
+    }
+  }
+  
+  /**
+   * Write message to benchmarking file
+   */
+  def write(writer: Either[BufferedWriter, PrintWriter], msg: String) {
+    writer match {
+      case Left(b) =>
+        b.append(msg).flush()
+      case Right(p) =>
+        p.append(msg).flush()
+    }
   }
   
   /**
    * Get execution time of block in nanoseconds
    */
-  def timeNs[R](block: => R, bw: BufferedWriter): Long = {
+  def timeNs[R](block: => R, w: Either[BufferedWriter, PrintWriter]): Long = {
     var result = 0.toLong
     try {
       val t0 = System.nanoTime()
@@ -33,8 +91,7 @@ object Benchmark {
     }
     catch {
       case e: Exception => {
-        bw.append("[ERROR] " + e.toString() + "\n")
-        bw.flush()        
+        write(w, "[ERROR] " + e.toString() + "\n")        
         
         result = -1                
       }
@@ -52,38 +109,37 @@ object Benchmark {
    * Execute block multiple times and write
    * average execution time on file 
    */
-  def execTimeAvg[R](block: => R, nExecs: Int, bw: BufferedWriter, writeAll: Boolean): Unit = {
+  def execTimeAvg[R](block: => R, nExecs: Int, w: Either[BufferedWriter, PrintWriter], writeAll: Boolean): Unit = {
     try {
       var totalExecTime = 0.toLong
       var now = Calendar.getInstance()
       var hour = now.get(Calendar.HOUR)
       var minute = now.get(Calendar.MINUTE)       
-      bw.append("[INFO] Start at: " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n")
-      bw.flush()
+      write(w, "[INFO] Start at: " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n")
       for (i <- 1 to nExecs) {
-        var execTime = timeNs(block,bw)
+        var execTime = timeNs(block, w)
         totalExecTime += execTime
         if (writeAll)
-          bw.append("[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
-          bw.flush()
+          write(w, "[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
       }
       now = Calendar.getInstance()
       hour = now.get(Calendar.HOUR)
       minute = now.get(Calendar.MINUTE)       
-      bw.append("[BENCHMARK] "          
+      write(w, "[BENCHMARK] "          
           +  "%20d".format(totalExecTime / nExecs)
           + " ns: AVG Execution time\n")
-      bw.append("[INFO] End at:   " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n\n")          
-      bw.flush()
+      write(w, "[INFO] End at:   " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n\n")          
     } catch {
       case e:
-        Exception => bw.append(e.toString() + "\n\n")
-        bw.flush()
+        Exception => write(w, e.toString() + "\n\n")
     }
   }
   
   def main(args: Array[String]): Unit = {
     Args.parse(args)
+    
+    // Spark context to run benchmarks
+    //val sc = Config.getSparkContext(Args.masterIp)
 
     var writeAll = Args.WRITEALL
 
@@ -108,78 +164,68 @@ object Benchmark {
     
     if (Args.BENCHMARK) {
       // Set file writer
-      var bw = getWriter()
+      var w = getWriter(Args.benchmarkOutput)
       var now = Calendar.getInstance()
       var hour = now.get(Calendar.HOUR)
       var minute = now.get(Calendar.MINUTE)
       var day = now.get(Calendar.DATE)
       var month = now.get(Calendar.MONTH) + 1
-      bw.append("\n\n###############################################################################\n")
-      bw.append("# Benchmarking started at " + hour + ":" + minute)
-      bw.append(" (" + day + "/" + month + ")\n")
-      bw.append("-k: " + Args.k + "\n")
-      bw.append("-n: " + Args.n + "\n")
-      bw.append("-count: " + Args.COUNT + "\n")      
-      bw.append("-threshold: " + Args.normThreshold + "\n")
-      bw.append("-threshold_c: " + Args.normThreshold_c + "\n")
-      bw.append("-input data: " + Args.input + "\n")
-      bw.append("-store final results: " + Args.STORERESULTS + "\n")
-      bw.append("-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
-      bw.append("###############################################################################\n\n")
-      bw.flush()
+      write(w, "\n\n###############################################################################\n")
+      write(w, "# Benchmarking started at " + hour + ":" + minute)
+      write(w, " (" + day + "/" + month + ")\n")
+      write(w, "-k: " + Args.k + "\n")
+      write(w, "-n: " + Args.n + "\n")
+      write(w, "-count: " + Args.COUNT + "\n")      
+      write(w, "-threshold: " + Args.normThreshold + "\n")
+      write(w, "-threshold_c: " + Args.normThreshold_c + "\n")
+      write(w, "-input data: " + Args.input + "\n")
+      write(w, "-store final results: " + Args.STORERESULTS + "\n")
+      write(w, "-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
+      write(w, "###############################################################################\n\n")
 
       if (Args.METRICSPACE) {
-        bw.append("###Metric Space:\n")
-        bw.flush()
-        execTimeAvg(algorithms.MetricSpace.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Metric Space:\n")
+        execTimeAvg(algorithms.MetricSpace.main(args), Args.nExecs, w, writeAll)
       }      
       
       if (Args.ELEMENTSPLIT) {
-        bw.append("###Element Split:\n")
-        bw.flush()
-        execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Element Split:\n")
+        execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPREFETCH) {
-        bw.append("###Inverted Index Prefix Filtering Fetching IDs:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxPreFetch.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Inverted Index Prefix Filtering Fetching IDs:\n")
+        execTimeAvg(algorithms.InvIdxPreFetch.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPREFETCH_C) {
-        bw.append("###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
+        execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.ELEMENTSPLIT_C) {
-        bw.append("###Element Split with near duplicates:\n")
-        bw.flush()
-        execTimeAvg(algorithms.ElementSplitNearDuplicates.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Element Split with near duplicates:\n")
+        execTimeAvg(algorithms.ElementSplitNearDuplicates.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPRE) {
-        bw.append("###Inverted Index Prefix Filtering:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Inverted Index Prefix Filtering:\n")
+        execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXFETCH) {
-        bw.append("###Inverted Index Fetching IDs:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Inverted Index Fetching IDs:\n")
+        execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDX) {
-        bw.append("###Inverted Index:\n")
-        bw.flush()
-        execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Inverted Index:\n")
+        execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, w, writeAll)
       }      
             
       if (Args.BRUTEFORCE) {
-        bw.append("###Brute Force:\n")
-        bw.flush()
-        execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, bw, writeAll)
+        write(w, "###Brute Force:\n")
+        execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, w, writeAll)
       }      
       
       now = Calendar.getInstance()
@@ -187,13 +233,12 @@ object Benchmark {
       minute = now.get(Calendar.MINUTE)
       day = now.get(Calendar.DATE)
       month = now.get(Calendar.MONTH) + 1
-      bw.append("\n\n###############################################################################\n")    
-      bw.append("# Endet at " + hour + ":" + minute)
-      bw.append(" (" + day + "/" + month + ")\n")
-      bw.append("###############################################################################\n")
-      bw.flush()            
+      write(w, "\n\n###############################################################################\n")    
+      write(w, "# Endet at " + hour + ":" + minute)
+      write(w, " (" + day + "/" + month + ")\n")
+      write(w, "###############################################################################\n")          
       
-      bw.close()
+      closeWriter(w)
     }
   }
 }
