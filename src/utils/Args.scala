@@ -72,7 +72,7 @@ options:
    --output               PATH : result output path
    --storeresults         BOOL : store final results 
    --datasetOutput        PATH : dataset output path (for synthetic data creation)
-   --benchmarkOutput      PATH : benchmarking results output path
+   --benchmarkOutput      PATH : benchmarking results output folder path
    --count                BOOL : count number of result pairs
    --debug                BOOL : debug mode
    --profiling            BOOL : profiling mode

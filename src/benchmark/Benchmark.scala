@@ -6,11 +6,6 @@ import java.io._
 import java.util.Calendar
 import scala.util.control.NonFatal
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import java.io.PrintWriter;
-
 /**
  * Benchmarking tool for extracting execution time of APSS implementations
  */
@@ -25,58 +20,7 @@ object Benchmark {
     return bw
   }*/
   
-  /**
-   * Write benchmarking result to either HDFS or local file system, depending
-   * input argument
-   */
-  def getWriter(filePath: String) : Either[BufferedWriter, PrintWriter] = {
-    if (filePath.contains("hdfs")) {    
-      val conf = new Configuration()
-      //conf.set("fs.defaultFS", "hdfs://quickstart.cloudera:8020")
-      val hdfsUrl = filePath.substring(0, filePath.lastIndexOf(":"))
-      var aux = filePath.substring(hdfsUrl.length(), filePath.length())
-      val port = aux.substring(aux.indexOf(":") + 1, aux.indexOf("/"))
-      aux = aux.substring(aux.indexOf("/"), aux.length())
-      val file = aux
-      
-      conf.set("fs.defaultFS", hdfsUrl + ":" + port)
-      val fs= FileSystem.get(conf)
-      val output = fs.create(new Path(file))
-      val writer = new PrintWriter(output)
-      
-      return Right(writer)
-    }
-    else {
-      val file = new File(filePath)
-      var bw = new BufferedWriter(new FileWriter(file, true))
-      
-      return Left(bw)      
-    }
-  }
-  
-  /**
-   * Close the writer
-   */
-  def closeWriter(writer: Either[BufferedWriter, PrintWriter]) {
-    writer match {
-      case Left(b) =>
-        b.close()
-      case Right(p) =>
-        p.close()
-    }
-  }
-  
-  /**
-   * Write message to benchmarking file
-   */
-  def write(writer: Either[BufferedWriter, PrintWriter], msg: String) {
-    writer match {
-      case Left(b) =>
-        b.append(msg).flush()
-      case Right(p) =>
-        p.append(msg).flush()
-    }
-  }
+
   
   /**
    * Get execution time of block in nanoseconds
@@ -91,9 +35,8 @@ object Benchmark {
     }
     catch {
       case e: Exception => {
-        write(w, "[ERROR] " + e.toString() + "\n")        
-        
-        result = -1                
+        utils.FileWriter.write(w, "[ERROR] " + e.toString() + "\n")        
+        result = -1   
       }
     }
     return result
@@ -115,23 +58,23 @@ object Benchmark {
       var now = Calendar.getInstance()
       var hour = now.get(Calendar.HOUR)
       var minute = now.get(Calendar.MINUTE)       
-      write(w, "[INFO] Start at: " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n")
+      //utils.FileWriter.write(w, "[INFO] Start at: " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n")
       for (i <- 1 to nExecs) {
         var execTime = timeNs(block, w)
         totalExecTime += execTime
-        if (writeAll)
-          write(w, "[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
+        //if (writeAll)
+          //utils.FileWriter.write(w, "[BENCHMARK] " + "%20d".format(execTime) + " ns: Execution " + i + "\n")
       }
       now = Calendar.getInstance()
       hour = now.get(Calendar.HOUR)
       minute = now.get(Calendar.MINUTE)       
-      write(w, "[BENCHMARK] "          
-          +  "%20d".format(totalExecTime / nExecs)
-          + " ns: AVG Execution time\n")
-      write(w, "[INFO] End at:   " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n\n")          
+      //utils.FileWriter.write(w, "[BENCHMARK] "          
+          //+  "%20d".format(totalExecTime / nExecs)
+          //+ " ns: AVG Execution time\n")
+      //utils.FileWriter.write(w, "[INFO] End at:   " + "%2d".format(hour) + ":" + "%2d".format(minute) + "\n\n")          
     } catch {
       case e:
-        Exception => write(w, e.toString() + "\n\n")
+        Exception => //utils.FileWriter.write(w, e.toString() + "\n\n")
     }
   }
   
@@ -164,67 +107,67 @@ object Benchmark {
     
     if (Args.BENCHMARK) {
       // Set file writer
-      var w = getWriter(Args.benchmarkOutput)
+      var w = utils.FileWriter.getWriter(Args.benchmarkOutput + "_BenchmarkConfig")
       var now = Calendar.getInstance()
       var hour = now.get(Calendar.HOUR)
       var minute = now.get(Calendar.MINUTE)
       var day = now.get(Calendar.DATE)
       var month = now.get(Calendar.MONTH) + 1
-      write(w, "\n\n###############################################################################\n")
-      write(w, "# Benchmarking started at " + hour + ":" + minute)
-      write(w, " (" + day + "/" + month + ")\n")
-      write(w, "-k: " + Args.k + "\n")
-      write(w, "-n: " + Args.n + "\n")
-      write(w, "-count: " + Args.COUNT + "\n")      
-      write(w, "-threshold: " + Args.normThreshold + "\n")
-      write(w, "-threshold_c: " + Args.normThreshold_c + "\n")
-      write(w, "-input data: " + Args.input + "\n")
-      write(w, "-store final results: " + Args.STORERESULTS + "\n")
-      write(w, "-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
-      write(w, "###############################################################################\n\n")
+      utils.FileWriter.write(w, "\n\n###############################################################################\n")
+      utils.FileWriter.write(w, "# Benchmarking started at " + hour + ":" + minute)
+      utils.FileWriter.write(w, " (" + day + "/" + month + ")\n")
+      utils.FileWriter.write(w, "-k: " + Args.k + "\n")
+      utils.FileWriter.write(w, "-n: " + Args.n + "\n")
+      utils.FileWriter.write(w, "-count: " + Args.COUNT + "\n")      
+      utils.FileWriter.write(w, "-threshold: " + Args.normThreshold + "\n")
+      utils.FileWriter.write(w, "-threshold_c: " + Args.normThreshold_c + "\n")
+      utils.FileWriter.write(w, "-input data: " + Args.input + "\n")
+      utils.FileWriter.write(w, "-store final results: " + Args.STORERESULTS + "\n")
+      utils.FileWriter.write(w, "-pre group duplicates: " + Args.GROUPDUPLICATES + "\n")
+      utils.FileWriter.write(w, "###############################################################################\n\n")
 
       if (Args.METRICSPACE) {
-        write(w, "###Metric Space:\n")
+        //utils.FileWriter.write(w, "###Metric Space:\n")
         execTimeAvg(algorithms.MetricSpace.main(args), Args.nExecs, w, writeAll)
       }      
       
       if (Args.ELEMENTSPLIT) {
-        write(w, "###Element Split:\n")
+        //utils.FileWriter.write(w, "###Element Split:\n")
         execTimeAvg(algorithms.ElementSplit.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPREFETCH) {
-        write(w, "###Inverted Index Prefix Filtering Fetching IDs:\n")
+        //utils.FileWriter.write(w, "###Inverted Index Prefix Filtering Fetching IDs:\n")
         execTimeAvg(algorithms.InvIdxPreFetch.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPREFETCH_C) {
-        write(w, "###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
+        //utils.FileWriter.write(w, "###Inverted Index Prefix Filtering Fetching IDs with near duplicates:\n")
         execTimeAvg(algorithms.InvIdxPreFetchNearDuplicates.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.ELEMENTSPLIT_C) {
-        write(w, "###Element Split with near duplicates:\n")
+        //utils.FileWriter.write(w, "###Element Split with near duplicates:\n")
         execTimeAvg(algorithms.ElementSplitNearDuplicates.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXPRE) {
-        write(w, "###Inverted Index Prefix Filtering:\n")
+        //utils.FileWriter.write(w, "###Inverted Index Prefix Filtering:\n")
         execTimeAvg(algorithms.InvIdxPreFilt.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDXFETCH) {
-        write(w, "###Inverted Index Fetching IDs:\n")
+        //utils.FileWriter.write(w, "###Inverted Index Fetching IDs:\n")
         execTimeAvg(algorithms.InvIdxFetch.main(args), Args.nExecs, w, writeAll)
       }
       
       if (Args.INVIDX) {
-        write(w, "###Inverted Index:\n")
+        //utils.FileWriter.write(w, "###Inverted Index:\n")
         execTimeAvg(algorithms.InvIdx.main(args), Args.nExecs, w, writeAll)
       }      
             
       if (Args.BRUTEFORCE) {
-        write(w, "###Brute Force:\n")
+        //utils.FileWriter.write(w, "###Brute Force:\n")
         execTimeAvg(algorithms.BruteForce.main(args), Args.nExecs, w, writeAll)
       }      
       
@@ -233,12 +176,12 @@ object Benchmark {
       minute = now.get(Calendar.MINUTE)
       day = now.get(Calendar.DATE)
       month = now.get(Calendar.MONTH) + 1
-      write(w, "\n\n###############################################################################\n")    
-      write(w, "# Endet at " + hour + ":" + minute)
-      write(w, " (" + day + "/" + month + ")\n")
-      write(w, "###############################################################################\n")          
+      utils.FileWriter.write(w, "\n\n###############################################################################\n")    
+      utils.FileWriter.write(w, "# Endet at " + hour + ":" + minute)
+      utils.FileWriter.write(w, " (" + day + "/" + month + ")\n")
+      utils.FileWriter.write(w, "###############################################################################\n")          
       
-      closeWriter(w)
+      utils.FileWriter.closeWriter(w)
     }
   }
 }

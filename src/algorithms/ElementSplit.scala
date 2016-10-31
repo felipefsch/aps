@@ -106,8 +106,12 @@ object ElementSplit {
       val DEBUG = Args.DEBUG
       val STORERESULTS = Args.STORERESULTS      
       val GROUPDUPLICATES = Args.GROUPDUPLICATES
+      val benchmarkOutput = Args.benchmarkOutput      
       
       val sc = Config.getSparkContext(masterIp)
+      
+      val w = utils.FileWriter.getWriter(benchmarkOutput + "ElementSplit")
+      val t0 = System.nanoTime()      
       
       try {
         // Load also sets ranking size k
@@ -135,8 +139,14 @@ object ElementSplit {
         case e:
           Exception => val log = LogManager.getRootLogger
           log.error(e.toString())
-      } finally {
-        Config.closeSparkContext(sc)
+          utils.FileWriter.write(w, e.toString() + "\n\n")
+      } finally {        
+        val t1 = System.nanoTime()
+        var execTime = (t1 - t0)
+        utils.FileWriter.writeExecTime(w, execTime)
+        utils.FileWriter.writeFinalStatus(w, hdfsUri, output)
+        utils.FileWriter.closeWriter(w)
+        Config.closeSparkContext(sc)        
       }
     }
 }
