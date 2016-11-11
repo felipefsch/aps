@@ -50,6 +50,13 @@ When storing into HDFS, don't forget to set hdfsUri so that the code properly ha
 --hdfsUri hdfs://server.uri:port/
 ```
 
+# Generating Synthetic Data Set
+
+It is possible to generate synthetic data either with Eclipse or submitting to Spark, as the following example:
+
+```
+./spark-submit --class benchmark.Benchmark /PATH\_TO\_JAR.jar --n 100000 --k 10 --nElements 50000 --benchmark false --datasetOutput /PATH\_TO\_OUTPUT.txt --createData true --nPools 10 --selectivity 0.05 --threshold 0.1
+```
 
 # Troubleshooting
 
