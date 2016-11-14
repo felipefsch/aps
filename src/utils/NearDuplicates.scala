@@ -248,7 +248,7 @@ object NearDuplicates {
   
   def getNearDuplicates(duplicatesDir: String, allInputs: RDD[(String, Array[String])], sc: SparkContext, partitions: Int)
   : RDD[(String, Array[String])] = {    
-    var similars = Load.loadSimilars(duplicatesDir, sc, partitions)
+    var similars = Load.similarPairs(duplicatesDir, sc, partitions)
     return groupNearDuplicates(similars, allInputs)
   }
 }

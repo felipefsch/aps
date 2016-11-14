@@ -14,22 +14,6 @@ object Load {
   
     /**
      * Input:
-     * -[RankingID, Element1, Element2,...]
-     * 
-     * Output:
-     * -(RankingID, [Element1, Element2,...])
-     */
-    private def arrayToTuple[T: Manifest] ( in: Array[T]) : (T, Array[T]) = {
-      var rankingID = in(0)
-      var elements = new Array[T](in.size - 1)
-      for (i <- 1 until in.size) {
-        elements(i -1) = in(i)
-      }      
-      return (rankingID, elements)
-    }
-
-    /**
-     * Input:
      * -path: the path to the input data set
      * -sc: the spark context
      * 
@@ -39,9 +23,8 @@ object Load {
      * Load space separated ranking with ID as first element. It also sets
      * size of ranking K in order to prevent wrong input parameters usage or similar
      */
-    private def spaceSeparated(path: String, sc: SparkContext, partitions: Int)
+    private def synthetic(path: String, sc: SparkContext, partitions: Int, k: Int, n: Int)
     : RDD[(String, Array[String])] = {
-      
       // File reading
       val file = if (partitions != 0){ 
                    sc.textFile(path, partitions)
@@ -49,17 +32,21 @@ object Load {
                  else {
                    sc.textFile(path)
                  } 
-      
-      // Split elements
-      val ranks = file.map(a => a.split(" "))
-      
-      // Set ranking size (When running on yarn, doesn't work. Set K in advance as argument)
-      //Args.setK(ranks.first().size - 1)
-      
-      // Convert array into tuple of array elements and rank id
-      val rankIdTuples = ranks.map(x => arrayToTuple(x))
 
-      return rankIdTuples
+      // Split input, removing initial string and
+      // elements as colon separated numbers
+      val ranks = file.map(a => 
+                           (a.substring(0, a.indexOf(" ")),
+                            a.substring(a.indexOf(" ") + 1, a.length())
+                             .split(" ")
+                             .slice(0, k)
+                            )
+                           )
+                           
+      // Filter on ranking size, pruning those that are smaller than desired
+      var filtered = ranks.filter(x => x._2.size == k)   
+      
+      return filtered
     }
     
     /**
@@ -76,7 +63,7 @@ object Load {
      * ATENTION! - Ranking size MUST be provided in advance, since inputs
      * might have not uniform sizes
      */    
-    private def colonSeparated (path: String, sc: SparkContext, partitions: Int, k: Int, n: Int)
+    private def indexedNyt (path: String, sc: SparkContext, partitions: Int, k: Int)
     : RDD[(String, Array[String])] = {
       // File reading
       val file = if (partitions != 0){ 
@@ -97,39 +84,84 @@ object Load {
                            )
                            
       // Filter on ranking size, pruning those that are smaller than desired
-      var filtered = ranks.filter(x => x._2.size == k)
-      
-      if (n > 0) {
-        // Take only desired amount of entries
-        val filterAmount = filtered.take(n)
-        //filtered = filtered.take(n)
-        
-        // Convert array to RDD
-        filtered = if (partitions != 0){ 
-                     sc.parallelize(filterAmount).repartition(partitions)
-                   } 
-                   else {
-                     sc.parallelize(filterAmount)
-                   }
-      }      
+      var filtered = ranks.filter(x => x._2.size == k)   
       
       return filtered
     }
     
-    def loadData(path: String, sc: SparkContext, partitions: Int, k: Int, n: Int) 
+    private def dblp (path: String, sc: SparkContext, partitions: Int, k: Int)
+    : RDD[(String, Array[String])] = {
+      // File reading
+      val file = if (partitions != 0){ 
+                   sc.textFile(path, partitions)
+                 } 
+                 else {
+                   sc.textFile(path)
+                 } 
+
+      // Split input, removing initial string and
+      // elements as colon separated numbers
+      val ranks = file.map(a => 
+                           (a.substring(0, a.indexOf(":")),
+                            a.substring(a.indexOf(":") + 1, a.length())
+                             .split(":")
+                             .slice(0, k)
+                            )
+                           )
+                           
+      // Filter on ranking size, pruning those that are smaller than desired
+      var filtered = ranks.filter(x => x._2.size == k)    
+      
+      return filtered
+    }    
+    
+    /**
+     * Take the first N entries from the RDD
+     */
+    private def subset[T](rdd: RDD[(String, Array[String])], n: Int, partitions: Int, sc: SparkContext)
+    : RDD[(String, Array[String])] = {
+      if (n > 0) {
+        // Take only desired amount of entries
+        val filterAmount = rdd.take(n)
+        
+        // Convert array to RDD
+        if (partitions != 0){ 
+          return sc.parallelize(filterAmount).repartition(partitions)
+        } 
+        else {
+          return sc.parallelize(filterAmount)
+        }
+      }
+      else {
+        return rdd
+      }
+    }
+    
+    
+    /**
+     * Load file with input data. Able to distinguish automatically if
+     * indexed NYT, DPLB or Synthetic data set input
+     */
+    def file(path: String, sc: SparkContext, partitions: Int, k: Int, n: Int) 
     : RDD[(String, Array[String])] = {            
       // Analyze the first line of the input to check its format
       val src = sc.textFile(path)
       val line = src.take(1).mkString      
       
-      var commaSeparated = false      
-      if (line.contains(":"))
-        commaSeparated = true
+      var isIndexedNyt = false      
+      if (line.contains("("))
+        isIndexedNyt = true
       
-      if (commaSeparated)
-        return this.colonSeparated(path, sc, partitions, k, n)
+      var isDblp = false
+      if (line.contains(":") & !isIndexedNyt)
+        isDblp = true
+        
+      if (isIndexedNyt)
+        return this.subset(this.indexedNyt(path, sc, partitions, k), n, partitions, sc)
+      else if (isDblp)
+        return this.subset(this.dblp(path, sc, partitions, k), n, partitions, sc)
       else
-        return this.spaceSeparated(path, sc, partitions)
+        return this.subset(this.synthetic(path, sc, partitions, k, n), n, partitions, sc)
     }
       
     /**
@@ -154,7 +186,7 @@ object Load {
      * Input:
      * -dir: directory with part files to be read 
      */
-    def loadSimilars(dir: String, sc: SparkContext, partitions: Int)
+    def similarPairs(dir: String, sc: SparkContext, partitions: Int)
     : RDD[(String, String)] = {
       val partFiles = getPartFiles(dir)
       var l = if (partitions != 0){ 

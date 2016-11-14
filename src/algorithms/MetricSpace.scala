@@ -67,7 +67,7 @@ object MetricSpace {
     
     try {
       // Load also sets ranking size k
-      var ranksArray = Load.loadData(input, sc, partitions, k, n)//.map(x => (x._1, x._2.mkString(":")))
+      var ranksArray = Load.file(input, sc, partitions, k, n)//.map(x => (x._1, x._2.mkString(":")))
       
       // Take sample and remove element from RDD
       val seed = scala.util.Random.nextInt()

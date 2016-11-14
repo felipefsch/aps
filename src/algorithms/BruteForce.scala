@@ -40,7 +40,7 @@ object BruteForce {
     
     try {
       // Load also sets ranking size k  
-      var ranksArray = Load.loadData(input, sc, partitions, k, n)
+      var ranksArray = Load.file(input, sc, partitions, k, n)
       
       var duplicates : org.apache.spark.rdd.RDD[((String, String), Long)] = sc.emptyRDD      
       if (GROUPDUPLICATES) {
