@@ -8,6 +8,7 @@ import utils.Args
 object SyntheticDataSet {
   
   private var increaseSequential = true
+  private var k = 10
 
   /**
    * Input:
@@ -18,6 +19,15 @@ object SyntheticDataSet {
    * Change sequential element to be only within specified range
    */
   private def changeSequential(sequential: Long, min: Long, max: Long) : Long = {
+    
+    if ((increaseSequential && sequential + k > max)) {
+      increaseSequential = false
+      return sequential - k
+    }
+    else if ((!increaseSequential && sequential - k < min)) {
+      increaseSequential = true
+      return sequential + k
+    }    
     
     if (sequential == min) {
       increaseSequential = true
@@ -265,7 +275,7 @@ object SyntheticDataSet {
   def main(args: Array[String]) {
     Args.parse(args)
 
-    var k = Args.k
+    k = Args.k
     var n = Args.n
     var distinctElements = Args.distinctElements
     var output = Args.datasetOutput
