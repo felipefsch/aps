@@ -54,12 +54,20 @@ object Footrule {
    *  common element between two rankings
    */
   def getPrefixSize( k: Long, threshold: Long ) : Long = {
-    var prefixSize = k - getMinCommonElements(k, threshold) + 1
+    var prefixSize = 0.toLong 
+   
+    if (threshold <= (Math.pow(k, 2) / 2).toLong) {
+      prefixSize = Math.floor(Math.sqrt(threshold) / Math.sqrt(2)).toLong + 1
+    }
+    else {
+      prefixSize = k - getMinCommonElements(k, threshold) + 1
+    }
     
     if (prefixSize > k)
       prefixSize = k
-    
+      
     return prefixSize
+    
   }
   
   /**
