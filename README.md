@@ -66,71 +66,71 @@ It is possible to generate synthetic data either with Eclipse or submitting to S
 
 The following parameters can be tunned to execute the code.
 
-usage: class [options] ...
-classes:
-   algorithms.Init
-   algorithms.BruteForce
-   algorithms.ElementSplit
-   algorithms.ElementSplitNearDuplicates
-   algorithms.InvIdx
-   algorithms.InvIdxPre
-   algorithms.InvIdxFetch
-   algorithms.InvIdxPreFetch
-   algorithms.InvIdxPreFetchNearDuplicates
-   benchmark.Benchmark
-   benchmark.SyntheticDataSet
+usage: class [options] ...  
+classes:  
+   algorithms.Init  
+   algorithms.BruteForce  
+   algorithms.ElementSplit  
+   algorithms.ElementSplitNearDuplicates  
+   algorithms.InvIdx  
+   algorithms.InvIdxPre  
+   algorithms.InvIdxFetch  
+   algorithms.InvIdxPreFetch  
+   algorithms.InvIdxPreFetchNearDuplicates  
+   benchmark.Benchmark  
+   benchmark.SyntheticDataSet  
 
-general options: 
-   --k                    N    : ranking size
-   --n                    N    : number of rankings
-   --threshold            N.M  : normalized similarity threshold
-   --threshold_c          N.M  : similarity threshold for near duplicates
-   --groupduplicates      BOOL : group duplicates before checking for similars
-   --duplicatesInput      PATH : folder with part-xxxxx files with similar rankings
-   --input                PATH : input dataset path
-   --output               PATH : result output path
-   --storeresults         BOOL : store final results 
-   --count                BOOL : count number of result pairs
-   --debug                BOOL : debug mode
-   --partitions           N    : number of partitions for repartitioning
-   --executors            N    : number of executors on local machine
-   --cores                N    : number of cores per executor
-   --dynamicAlloc         BOOL : dynamically allocate executors
-   --masterIp             IP   : master node IP
-   --hdfsUri              URI  : URI of hdfs file system
+general options:  
+   --k                    N    : ranking size  
+   --n                    N    : number of rankings  
+   --threshold            N.M  : normalized similarity threshold  
+   --threshold_c          N.M  : similarity threshold for near duplicates  
+   --groupduplicates      BOOL : group duplicates before checking for similars  
+   --duplicatesInput      PATH : folder with part-xxxxx files with similar rankings  
+   --input                PATH : input dataset path  
+   --output               PATH : result output path  
+   --storeresults         BOOL : store final results  
+   --count                BOOL : count number of result pairs  
+   --debug                BOOL : debug mode  
+   --partitions           N    : number of partitions for repartitioning  
+   --executors            N    : number of executors on local machine  
+   --cores                N    : number of cores per executor  
+   --dynamicAlloc         BOOL : dynamically allocate executors  
+   --masterIp             IP   : master node IP  
+   --hdfsUri              URI  : URI of hdfs file system  
 
-benchmark specific:
-   --nExecs               N    : number of executions of each algorithm
-   --benchmarkOutput      PATH : benchmarking results output path
-   --writeAll             BOOL : write execution time for each execution
-   --createData           BOOL : create synthetic dataset
-   --init                 BOOL : run Spark context initialization
-   --bruteforce           BOOL : run brute force
-   --elementsplit         BOOL : run elementsplit
-   --elementsplit_c       BOOL : run elementsplit with near duplicates
-   --invidx               BOOL : run inverted index
-   --invidxpre            BOOL : run inverted index prefix filtering
-   --invidxfetch          BOOL : run inverted index fetching IDs
-   --invidxprefetch       BOOL : run inverted index prefix filtering fetch ID
-   --invidxprefetch_c     BOOL : prefix filtering fetch ID with near duplicates
-   --metricspace          BOOL : run search using metric space
-   --benchmark            BOOL : run benchmarking (false dont run any approach)
-
-synthetic dataset specific:
-   --createData           BOOL : create synthetic dataset (overwrite existing)
-   --datasetOutput        PATH : dataset output path (for synthetic data creation)
-   --selectivity          N.M  : selectivity percentage
-   --poolIntersection     N.M  : intersection percentage
-   --nPools               N    : number of pools for intersecting rankings
-   --nElements            N    : number of distinct elements
+benchmark specific:  
+   --nExecs               N    : number of executions of each algorithm  
+   --benchmarkOutput      PATH : benchmarking results output path  
+   --writeAll             BOOL : write execution time for each execution  
+   --createData           BOOL : create synthetic dataset  
+   --init                 BOOL : run Spark context initialization  
+   --bruteforce           BOOL : run brute force  
+   --elementsplit         BOOL : run elementsplit  
+   --elementsplit_c       BOOL : run elementsplit with near duplicates  
+   --invidx               BOOL : run inverted index  
+   --invidxpre            BOOL : run inverted index prefix filtering  
+   --invidxfetch          BOOL : run inverted index fetching IDs  
+   --invidxprefetch       BOOL : run inverted index prefix filtering fetch ID  
+   --invidxprefetch_c     BOOL : prefix filtering fetch ID with near duplicates  
+   --metricspace          BOOL : run search using metric space  
+   --benchmark            BOOL : run benchmarking (false dont run any approach)  
+  
+synthetic dataset specific:  
+   --createData           BOOL : create synthetic dataset (overwrite existing)  
+   --datasetOutput        PATH : dataset output path (for synthetic data creation)  
+   --selectivity          N.M  : selectivity percentage  
+   --poolIntersection     N.M  : intersection percentage  
+   --nPools               N    : number of pools for intersecting rankings  
+   --nElements            N    : number of distinct elements  
+     
+metric space (not finished):  
+   --medoidsmultiplier    INT  : how many medoids per partition  
    
-metric space (not finished):
-   --medoidsmultiplier    INT  : how many medoids per partition
-   
-deprecated or limited support flags:
-   --config               PATH : path to XML configuration file (LIMITED)
-   --profiling            BOOL : profiling mode (DEPRECATED) 
-
+deprecated or limited support flags:  
+   --config               PATH : path to XML configuration file (LIMITED)  
+   --profiling            BOOL : profiling mode (DEPRECATED)   
+  
 # Troubleshooting
 
 Possible errors:
