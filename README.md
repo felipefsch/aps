@@ -64,7 +64,7 @@ It is possible to generate synthetic data either with Eclipse or submitting to S
 
 # Parameters
 
-The following parameters can be tunned to execute the code.
+The following parameters can be tunned to execute the code. They can be seen by running any of the classes with no arguments (help is then printed).
 
 usage: class [options] ...  
 classes:  
