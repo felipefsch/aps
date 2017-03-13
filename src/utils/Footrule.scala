@@ -217,7 +217,7 @@ object Footrule {
     }
     
     // Check if threshold reached to avoid traversing pools
-    if (footrule < threshold) {
+    if (footrule <= threshold) {
       for (p <- pool1) {
         footrule = footrule + partialDistance(p, k)
       }

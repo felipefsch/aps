@@ -133,7 +133,7 @@ object NearDuplicates {
                                 )
                               )
                               
-    return expandedRight.union(expandedLeftOnly).distinct()
+    return expandedRight.union(expandedLeftOnly).filter(x => x._1._1 != x._1._2).distinct()
   }
   
   /**
@@ -148,7 +148,7 @@ object NearDuplicates {
   def filterFalseCandidates(similarRanks: RDD[((String, String),Long)], threshold: Long)
   : RDD[((String, String),Long)] = {
     // Remove pairs that have no near duplicates and higher threshold than desired
-    return similarRanks.filter(f => f._2 < threshold || f._1._1.contains(":") || f._1._2.contains(":"))
+    return similarRanks.filter(f => f._2 <= threshold || f._1._1.contains(":") || f._1._2.contains(":"))
   }
   
   /**
@@ -167,7 +167,7 @@ object NearDuplicates {
                            normThreshold: Double,
                            normThreshold_c: Double)
   : RDD[((String, String), Long)] = {   
-    var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":"))    
+    var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":") && x._1._1 != x._1._2)    
     
     // Pairs containing near duplicates
     var withNearDuplicates = similarRanks.filter(f => f._1._1.contains(":") || f._1._2.contains(":"))
@@ -192,7 +192,7 @@ object NearDuplicates {
     val secondJoin = allRanks.join(firstJoin).map(x => (x._2._2, (x._1, x._2._1)))
   
     var checked = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))      
-    checked = checked.filter(x => x._2 <= threshold)    
+    checked = checked.filter(x => x._2 <= threshold && x._1._1 != x._1._2)    
         
     return noDuplicates.union(expanded).union(checked)
   }
@@ -235,7 +235,7 @@ object NearDuplicates {
                           .reduceByKey((a,b) => (getLongerString(a._1, b._1), a._2 + b._2))
                           .filter(f => f._2._2 > 0)
                           .map(x => x._2._1)                            
-                                
+
     // Use first ID of merged IDs to fetch ranking to be used as representative to the set
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
                                           .join(allRankings)
