@@ -33,7 +33,19 @@ object CartesianProduct {
     return productFiltered
   }
   
-  def orderedWithoutSelf[T <%Ordered[T]] ( in: Array[T] ) : Array[(T, T)] = {
-    return in.flatMap(x => in.map(y => (x, y))).filter(f => f._1 < f._2)
+  def orderedWithoutSelf[T <%Ordered[T]] ( in: Array[T] ) : IndexedSeq[(T, T)] = {
+    
+    var combinations = for (i <- 0 until in.length) yield {
+      for (j <- i until in.length) yield {
+        if (in(i) < in(j))
+          (in(i), in(j))
+        else
+          (in(j), in(i))
+      }
+    }
+    
+    var output = combinations.flatMap(f => f).filter(f => f._1 != f._2)//.map(x => (x, -1))
+    
+    return output//in.flatMap(x => in.map(y => (x, y))).filter(f => f._1 < f._2)
   }
 }

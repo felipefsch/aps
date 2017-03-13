@@ -43,13 +43,15 @@ object InvIdxPreFetchNearDuplicates {
 
       var nearDuplicates = InvIdxPreFetch.run(ranksArray, threshold_c, k)                                                                                      
       var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
+
+      var expandedClusters = NearDuplicates.expandClusters(ranksNearDuplicates)
       
       var similarRanks = InvIdxPreFetch.run(ranksNearDuplicates, threshold + threshold_c, k)
       similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, threshold)
       similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, k, threshold, normThreshold, normThreshold_c)
       
       // Add near duplicates to result set
-      similarRanks = similarRanks.union(nearDuplicates)
+      similarRanks = similarRanks.union(expandedClusters)      
             
       if (GROUPDUPLICATES) {
         var rddUnion = similarRanks.union(duplicates)
@@ -57,7 +59,7 @@ object InvIdxPreFetchNearDuplicates {
       }
       
       Store.rdd(output, similarRanks, COUNT, STORERESULTS, hdfsUri)       
-     } catch {
+    } catch {
       case e:
         Exception => val log = LogManager.getRootLogger
         log.error(e.toString())

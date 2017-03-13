@@ -44,12 +44,14 @@ object ElementSplitNearDuplicates {
       var nearDuplicates = ElementSplit.run(ranksArray, threshold_c, k, minOverlap)                                                                                      
       var ranksNearDuplicates = NearDuplicates.groupNearDuplicates(nearDuplicates.map(x => x._1), ranksArray)
       
+      var expandedClusters = NearDuplicates.expandClusters(ranksNearDuplicates)
+      
       var similarRanks = ElementSplit.run(ranksNearDuplicates, threshold + threshold_c, k, minOverlap)
       similarRanks = NearDuplicates.filterFalseCandidates(similarRanks, threshold)
       similarRanks = NearDuplicates.expandNearDuplicates(similarRanks, ranksArray, k, threshold, normThreshold, normThreshold_c)
       
       // Add near duplicates to result set
-      similarRanks = similarRanks.union(nearDuplicates)
+      similarRanks = similarRanks.union(expandedClusters)
             
       if (GROUPDUPLICATES) {
         var rddUnion = similarRanks.union(duplicates)

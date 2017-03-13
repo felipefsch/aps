@@ -132,8 +132,8 @@ object NearDuplicates {
                                         ((x._1._1, y), x._2)
                                 )
                               )
-                              
-    return expandedRight.union(expandedLeftOnly).filter(x => x._1._1 != x._1._2).distinct()
+    var output = expandedRight.union(expandedLeftOnly).filter(x => x._1._1 != x._1._2).distinct()                              
+    return output
   }
   
   /**
@@ -152,6 +152,45 @@ object NearDuplicates {
   }
   
   /**
+   * This removes the intersection between two clustered rankings so that it can
+   * be properly expanded into its pairs. Rankings belonging to both clusters must
+   * be removed to avoid creating pairs containing the same rankingID on both sides
+   * of the pair. Also, to avoid duplicated outputs, should not create the pairs
+   * with elements belonging to the cluster since it is done in the initial steps
+   * of the processing.
+   * 
+   * Input:
+   * -Candidate pair containing clustered rankings on both sides of the pair
+   * 
+   * Output:
+   * -Candidate pair with intersection between the rankings removed
+   */
+  def removeIntersection(in: RDD[((String, String), Long)])
+  : RDD[((String, String), Long)] = {
+    // Split clustered rankings to remove intersections
+    var noIntersections = in.map(x => ((x._1._1.split(":").toList, x._1._2.split(":").toList), x._2))
+        
+    return noIntersections.map(x => (removeIntersection(x._1), x._2))
+  }
+  
+  /**
+   * Removes intersection between two list of rankings. Output rankings exclusive
+   * to each cluster. It can not happen that one is a subset of the other since
+   * the clustering itself ensures removal of subsets!
+   */
+  def removeIntersection(in: (List[String], List[String])) : (String, String) = {
+    var cluster1 = in._1
+    var cluster2 = in._2
+    cluster1.foreach(x => cluster2 = cluster2.filter(y => y != x))
+    in._2.foreach(x => cluster1 = cluster1.filter(y => y != x))
+    
+    var outCluster1 = cluster1.reduce((a, b) => a.concat(":").concat(b))
+    var outCluster2 = cluster2.reduce((a, b) => a.concat(":").concat(b))
+    
+    return (outCluster1, outCluster2)
+  }
+  
+  /**
    * Input:
    * -similarRanks: similar ranking pairs with max distance theta + theta_c
    * -allRanks: rankings without near duplicates grouping (and with duplicates grouping
@@ -166,18 +205,27 @@ object NearDuplicates {
                            threshold: Long,
                            normThreshold: Double,
                            normThreshold_c: Double)
-  : RDD[((String, String), Long)] = {   
+  : RDD[((String, String), Long)] = {
     var noDuplicates = similarRanks.filter(x => !x._1._1.contains(":") && !x._1._2.contains(":") && x._1._1 != x._1._2)    
     
-    // Pairs containing near duplicates
-    var withNearDuplicates = similarRanks.filter(f => f._1._1.contains(":") || f._1._2.contains(":"))
-
     // theta - theta_c
     var maxDist = Footrule.denormalizeThreshold(k, normThreshold - normThreshold_c)
+    
+    // Pairs containing near duplicates on both sides. Remove rankings common to both clusters
+    var withNearDuplicatesBoth = similarRanks.filter(f => f._1._1.contains(":") && f._1._2.contains(":") && f._2 <= maxDist)
+    var noIntersection = removeIntersection(withNearDuplicatesBoth)
+    
+    // After removing intersections between cluster pairs, we might still need to expand the pair or not
+    var noIntersectionToExpand = noIntersection.filter(f => f._1._1.contains(":") || f._1._2.contains(":"))
+    var noIntersectionSingleRankings = noIntersection.filter(f => !f._1._1.contains(":") && !f._1._2.contains(":"))
+    
+    // Pairs containing clusters in either one side of the pair or the other
+    var withNearDuplicatesLeft = similarRanks.filter(f => f._1._1.contains(":") && !f._1._2.contains(":") && f._2 <= maxDist)
+    var withNearDuplicatesRight = similarRanks.filter(f => !f._1._1.contains(":") && f._1._2.contains(":") && f._2 <= maxDist)
 
     // If dist <= theta - theta_c we can be sure that all pairs satisfy dist <= theta
-    var toExpand = withNearDuplicates.filter(f => f._2 <= maxDist)    
-    var expanded = expandAll(toExpand)
+    //var toExpand = withNearDuplicates.filter(f => f._2 <= maxDist)
+    var expanded = expandAll(withNearDuplicatesLeft.union(withNearDuplicatesRight).union(noIntersectionToExpand)).union(noIntersectionSingleRankings)
     
     // If  theta - theta_c < dist <= theta + theta_c, elements from representative might be candidates
     // or not! Need to fetch real ranking to search for correct distance.
@@ -193,8 +241,28 @@ object NearDuplicates {
   
     var checked = secondJoin.map(x => Footrule.onLeftIdIndexedArray(x))      
     checked = checked.filter(x => x._2 <= threshold && x._1._1 != x._1._2)    
-        
-    return noDuplicates.union(expanded).union(checked)
+    
+    var output = noDuplicates.union(expanded).union(checked)
+    
+    return output
+  }
+  
+  /**
+   * Input:
+   * -clusters: RDD containing only clustered rankings
+   * 
+   * Output:
+   * -pairs of similar rankings
+   */
+  def expandClusters(clusters: RDD[(String, Array[String])])
+  : RDD[((String, String), Long)] = {
+    // Split cluster into its rankings
+    var clusteredRankings = clusters.map(x => x._1.split(":"))
+    
+    // Create cluster pairs to be added in the output
+    var clusterPairs = clusteredRankings.flatMap(x => CartesianProduct.orderedWithoutSelf(x)).map(x => (x, -1.toLong)).distinct()
+    
+    return clusterPairs
   }
   
   /**
@@ -240,7 +308,7 @@ object NearDuplicates {
     var duplicatesIdFetch = nearDuplicates.map(x => (x.substring(0, x.indexOf(":")), x.substring(x.indexOf(":"), x.length())))
                                           .join(allRankings)
                                           .map(x => (x._1.concat(x._2._1), x._2._2))
-                                          
+                                      
     var inputWithNearDuplicates = filteredInput.union(duplicatesIdFetch)
     
     return inputWithNearDuplicates
